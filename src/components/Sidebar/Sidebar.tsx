@@ -11,7 +11,7 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-type Category = 'all' | 'devotional' | 'nature';
+type Category = 'all' | 'devotional' | 'nature' | 'meditation';
 
 const TrackItem = ({
   track,
@@ -58,6 +58,7 @@ const CAT_LABELS: Record<Category, string> = {
   all: 'All',
   devotional: '🕉 Devotional',
   nature: '🌿 Nature',
+  meditation: '🪷 Meditation',
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTrackId, isPlaying, onSelectTrack, onClose }) => {

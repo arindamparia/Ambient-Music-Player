@@ -34,7 +34,7 @@ export const TRACKS: Track[] = [
   { key: 'healing', emoji: '✨', label: 'Healing Sounds', theme: '#b45309', category: 'devotional' },
   { key: 'windMandir', emoji: '🛕', label: 'Winds of the Mandir', theme: '#0f766e', category: 'devotional' },
   { key: 'shivaDeep', emoji: '🔱', label: 'Shiva — Deep Mystical', theme: '#3730a3', category: 'devotional' },
-  { key: 'meditation', emoji: '🪘', label: 'Indian Meditation', theme: '#854d0e', category: 'devotional' },
+  { key: 'meditation', emoji: '🪘', label: 'Indian Meditation', theme: '#854d0e', category: 'meditation' },
   { key: 'krishnaFlute', emoji: '🪈', label: 'Krishna Flute of Peace', theme: '#0369a1', category: 'devotional' },
   // ── Nature tracks ─────────────────────────────────────────────────────────
   { key: 'rain', emoji: '🌧️', label: 'Calming Rain', theme: '#334155', category: 'nature' },
