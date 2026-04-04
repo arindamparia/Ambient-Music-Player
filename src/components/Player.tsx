@@ -17,7 +17,7 @@ export const Player: React.FC = () => {
   const { currentTrackId, isPlaying, volume, setVolume } = useAudioStore();
   const { togglePlay, analyser } = useTwinDeckAudio();
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const isMobile = () => window.innerWidth < 768;
 
   const currentTrack = TRACKS.find(t => t.key === currentTrackId);

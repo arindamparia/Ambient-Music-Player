@@ -109,8 +109,8 @@ export const useTwinDeckAudio = () => {
     audioCtxRef.current = new AudioContextClass();
     
     analyserRef.current = audioCtxRef.current.createAnalyser();
-    analyserRef.current.fftSize = 256; // Increased resolution to capture more bands for 12 lines
-    analyserRef.current.smoothingTimeConstant = 0.55; // Snappier, more reactive!
+    analyserRef.current.fftSize = 2048;           // 1024 bins — enough resolution for 20 distinct bars
+    analyserRef.current.smoothingTimeConstant = 0.6; // slight smoothing so peaks look fluid not jittery
     analyserRef.current.minDecibels = -85;
     analyserRef.current.maxDecibels = -10;
 
@@ -174,53 +174,70 @@ export const useTwinDeckAudio = () => {
 
   const togglePlay = useCallback((trackId?: string) => {
     initAudioSystem();
-    const trackToPlay = trackId || currentTrackRef.current || 'omNamahShivay';
-    
+
     if (audioCtxRef.current?.state === 'suspended') {
       audioCtxRef.current.resume();
     }
 
-    if (trackToPlay === currentTrackRef.current && isPlayingRef.current && !trackId) {
-      deckARef.current?.pause();
-      deckBRef.current?.pause();
+    const trackToPlay = trackId || currentTrackRef.current || 'omNamahShivay';
+    const isSameTrack = trackToPlay === currentTrackRef.current;
+
+    // Case 1: Same track, currently playing → PAUSE
+    if (isSameTrack && isPlayingRef.current) {
+      const activeDeck = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      activeDeck?.pause();
       store.setIsPlaying(false);
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
       return;
     }
 
+    // Case 2: Same track, currently paused → RESUME (no restart)
+    // Guard: deck must have a src (missing after page refresh → fall through to Case 3)
+    if (isSameTrack && !isPlayingRef.current && currentTrackRef.current) {
+      const activeDeck = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      const hasSrc = activeDeck?.src && !activeDeck.src.endsWith('/');
+      if (hasSrc) {
+        activeDeck?.play().then(() => {
+          store.setIsPlaying(true);
+          if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+        }).catch(console.error);
+        return;
+      }
+      // No src (page refresh): fall through to Case 3 to reload the track
+    }
+
+    // Case 3: Different track → SWITCH (start fresh)
     store.setCurrentTrack(trackToPlay);
-    
+
     if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
     isFadingRef.current = false;
     activeDeckRef.current = 'A';
 
     if (deckARef.current && deckBRef.current && gainARef.current && gainBRef.current) {
-        if (currentTrackRef.current !== trackToPlay || !deckARef.current.src) {
-           deckARef.current.src = AUDIO_URLS[trackToPlay];
-           deckBRef.current.src = AUDIO_URLS[trackToPlay];
+      deckARef.current.src = AUDIO_URLS[trackToPlay];
+      deckBRef.current.src = AUDIO_URLS[trackToPlay];
+
+      const vol = sliderToVol(volSliderRef.current);
+      gainARef.current.gain.cancelScheduledValues(audioCtxRef.current!.currentTime);
+      gainBRef.current.gain.cancelScheduledValues(audioCtxRef.current!.currentTime);
+      gainARef.current.gain.value = vol;
+      gainBRef.current.gain.value = 0;
+
+      deckARef.current.currentTime = 0;
+      deckBRef.current.pause();
+      deckBRef.current.currentTime = 0;
+
+      deckARef.current.play().then(() => {
+        store.setIsPlaying(true);
+        attachMediaSession(trackToPlay);
+
+        // Pre-buffer deck B silently for gapless crossfade
+        if (deckBRef.current?.paused) {
+          deckBRef.current.play()
+            .then(() => { deckBRef.current?.pause(); deckBRef.current!.currentTime = 0; })
+            .catch(() => {});
         }
-        
-        const vol = sliderToVol(volSliderRef.current);
-        gainARef.current.gain.cancelScheduledValues(audioCtxRef.current!.currentTime);
-        gainBRef.current.gain.cancelScheduledValues(audioCtxRef.current!.currentTime);
-        gainARef.current.gain.value = vol;
-        gainBRef.current.gain.value = 0;
-        
-        deckARef.current.currentTime = 0;
-        deckBRef.current.pause();
-        deckBRef.current.currentTime = 0;
-
-        deckARef.current.play().then(() => {
-            store.setIsPlaying(true);
-            attachMediaSession(trackToPlay);
-
-            if (deckBRef.current?.paused) {
-                deckBRef.current.play().then(() => {
-                     deckBRef.current?.pause();
-                     deckBRef.current!.currentTime = 0;
-                }).catch(() => {});
-            }
-        }).catch(console.error);
+      }).catch(console.error);
     }
   }, [initAudioSystem, store, attachMediaSession]);
 

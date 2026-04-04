@@ -50,7 +50,7 @@
 .sidebar__track-list {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 10px 16px;
+  padding: 10px 10px 80px; /* 80px bottom padding so last track clears the dock */
   display: flex;
   flex-direction: column;
   gap: 2px;
