@@ -1,0 +1,148 @@
+/* ── Root layout grid (desktop) ─────────────────────────────
+   Areas:
+     sidebar  | main
+     bottom   | bottom
+   ─────────────────────────────────────────────────────────── */
+.player {
+  display: grid;
+  grid-template-areas:
+    "sidebar main"
+    "bottom  bottom";
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  background: #0c0c14;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sidebar collapsed: shrink column to 0 with a smooth transition */
+.player--sidebar-open {
+  grid-template-columns: 300px 1fr;
+}
+.player:not(.player--sidebar-open) {
+  grid-template-columns: 0 1fr;
+}
+/* Smooth column resize */
+.player {
+  transition: grid-template-columns 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Per-track color tint ───────────────────────────────────── */
+.player__tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 65% 35%,
+    var(--theme-color, #4c1d95) 0%,
+    transparent 65%
+  );
+  opacity: 0.12;
+  transition: background 1.2s ease-in-out, opacity 1.2s ease;
+}
+
+/* ── Sidebar slot ───────────────────────────────────────────── */
+.player .sidebar {
+  grid-area: sidebar;
+  overflow: hidden;        /* Content clips during collapse */
+  z-index: 30;
+  transition: opacity 0.3s ease;
+}
+.player:not(.player--sidebar-open) .sidebar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Now-playing main stage slot ───────────────────────────── */
+.player .now-playing {
+  grid-area: main;
+  z-index: 5;
+}
+
+/* ── Bottom bar slot ────────────────────────────────────────── */
+.player .bottom-bar {
+  grid-area: bottom;
+  z-index: 20;
+}
+
+/* ── Backdrop (closes sidebar on outside click) ─────────────── */
+.player__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+/* ── Mobile hamburger button ────────────────────────────────── */
+.player__mobile-menu {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px 8px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.player__mobile-menu:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+/* On desktop the backdrop should not be full-fixed; it should only cover the main stage */
+@media (min-width: 768px) {
+  .player__backdrop {
+    /* Do NOT cover full viewport on desktop — sidebar toggle is a UI feature, not modal */
+    display: none;
+  }
+}
+
+/* ── Mobile layout ─────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .player,
+  .player--sidebar-open,
+  .player:not(.player--sidebar-open) {
+    grid-template-areas:
+      "main"
+      "bottom";
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr auto;
+    transition: none;
+  }
+
+  /* Sidebar becomes absolute overlay drawer on mobile */
+  .player .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 12px;
+    bottom: 100px;
+    width: calc(100vw - 24px);
+    max-width: 340px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    transform: translateX(-110%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s;
+  }
+
+  .player--sidebar-open .sidebar {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .player__mobile-menu { display: flex; }
+  .player__backdrop    { display: block; }
+}
