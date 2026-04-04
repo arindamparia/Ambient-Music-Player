@@ -3,23 +3,28 @@ import { useAudioStore } from '../store/useAudioStore';
 import { AUDIO_URLS, TRACKS } from '../constants/tracks';
 
 const CROSSFADE_SEC = 4.0;
-export const sliderToVol = (s: number) => s <= 0.5 ? s * 2 : 1 + (s - 0.5) * 4;
-export const volToSlider = (v: number) => v <= 1 ? v / 2 : 0.5 + (v - 1) / 4;
+// Linear mapping: slider 0-1 → gain 0-1x. No overdrive — keeps audio clean.
+export const sliderToVol = (s: number) => s;
+export const volToSlider = (v: number) => v;
 
 export const useTwinDeckAudio = () => {
   const store = useAudioStore();
-  
+
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  
+  const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+
   const deckARef = useRef<HTMLAudioElement | null>(null);
   const deckBRef = useRef<HTMLAudioElement | null>(null);
   const gainARef = useRef<GainNode | null>(null);
   const gainBRef = useRef<GainNode | null>(null);
-  
+
   const activeDeckRef = useRef<'A' | 'B'>('A');
   const isFadingRef = useRef(false);
   const fadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Wake Lock handle — keeps screen alive on mobile while playing
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
   const isPlayingRef = useRef(store.isPlaying);
   const currentTrackRef = useRef(store.currentTrackId);
@@ -29,32 +34,46 @@ export const useTwinDeckAudio = () => {
   useEffect(() => { currentTrackRef.current = store.currentTrackId; }, [store.currentTrackId]);
   useEffect(() => { volSliderRef.current = store.volume; }, [store.volume]);
 
-  const getGainFor = useCallback((audio: HTMLAudioElement) => 
+  const getGainFor = useCallback((audio: HTMLAudioElement) =>
     audio === deckARef.current ? gainARef.current : gainBRef.current, []);
 
-  // Sync Progress to DOM directly (bypassing React render loop for 60fps)
+  // ── Wake Lock helpers ──────────────────────────────────────────────────────
+  const acquireWakeLock = useCallback(async () => {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      if (wakeLockRef.current && !wakeLockRef.current.released) return;
+      wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+    } catch (_) { /* permission denied or not supported */ }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    wakeLockRef.current?.release().catch(() => {});
+    wakeLockRef.current = null;
+  }, []);
+
+  // ── Sync Progress to DOM directly (60fps, no React re-render) ─────────────
   useEffect(() => {
     let raf: number;
     const updateProgress = () => {
-       raf = requestAnimationFrame(updateProgress);
-       const active = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-       if (active && active.duration) {
-           const percent = (active.currentTime / active.duration) * 100;
-           document.documentElement.style.setProperty('--track-progress', `${percent}%`);
-           
-           // Format time strings
-           const format = (t: number) => {
-              const m = Math.floor(t / 60);
-              const s = Math.floor(t % 60);
-              return `${m}:${s < 10 ? '0' : ''}${s}`;
-           };
-           
-           const timeEl = document.getElementById('track-curr-time');
-           if (timeEl) timeEl.innerText = format(active.currentTime);
-           
-           const durEl = document.getElementById('track-dur-time');
-           if (durEl) durEl.innerText = format(active.duration);
-       }
+      raf = requestAnimationFrame(updateProgress);
+      if (document.hidden) return; // skip DOM updates when tab is not visible (saves GPU/CPU)
+      const active = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      if (active && active.duration) {
+        const percent = (active.currentTime / active.duration) * 100;
+        document.documentElement.style.setProperty('--track-progress', `${percent}%`);
+
+        const format = (t: number) => {
+          const m = Math.floor(t / 60);
+          const s = Math.floor(t % 60);
+          return `${m}:${s < 10 ? '0' : ''}${s}`;
+        };
+
+        const timeEl = document.getElementById('track-curr-time');
+        if (timeEl) timeEl.innerText = format(active.currentTime);
+
+        const durEl = document.getElementById('track-dur-time');
+        if (durEl) durEl.innerText = format(active.duration);
+      }
     };
     raf = requestAnimationFrame(updateProgress);
     return () => cancelAnimationFrame(raf);
@@ -62,39 +81,39 @@ export const useTwinDeckAudio = () => {
 
   const doCrossfade = useCallback((fadeOutAudio: HTMLAudioElement, fadeInAudio: HTMLAudioElement) => {
     if (!audioCtxRef.current) return;
-    
+
     isFadingRef.current = true;
     fadeInAudio.currentTime = 0;
 
     const fadeOutGain = getGainFor(fadeOutAudio);
     const fadeInGain = getGainFor(fadeInAudio);
-    
+
     if (!fadeOutGain || !fadeInGain) return;
 
     const now = audioCtxRef.current.currentTime;
     const targetVol = sliderToVol(volSliderRef.current);
-    
+
     fadeOutGain.gain.cancelScheduledValues(now);
     fadeInGain.gain.cancelScheduledValues(now);
-    
+
     fadeOutGain.gain.setValueAtTime(fadeOutGain.gain.value || targetVol, now);
     fadeOutGain.gain.linearRampToValueAtTime(0.001, now + CROSSFADE_SEC);
-    
+
     fadeInGain.gain.setValueAtTime(0.001, now);
     fadeInGain.gain.linearRampToValueAtTime(targetVol, now + CROSSFADE_SEC);
 
-    fadeInAudio.play().catch(() => { });
+    fadeInAudio.play().catch(() => {});
 
     if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
-    
+
     fadeTimeoutRef.current = setTimeout(() => {
       if (!audioCtxRef.current) return;
       fadeOutGain.gain.cancelScheduledValues(audioCtxRef.current.currentTime);
       fadeInGain.gain.cancelScheduledValues(audioCtxRef.current.currentTime);
-      
+
       fadeOutGain.gain.value = 0;
       fadeInGain.gain.value = sliderToVol(volSliderRef.current);
-      
+
       fadeOutAudio.pause();
       fadeOutAudio.currentTime = 0;
       activeDeckRef.current = activeDeckRef.current === 'A' ? 'B' : 'A';
@@ -107,19 +126,29 @@ export const useTwinDeckAudio = () => {
 
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     audioCtxRef.current = new AudioContextClass();
-    
+
+    // Analyser — FFT for visualizer (read-only, does not modify audio)
     analyserRef.current = audioCtxRef.current.createAnalyser();
-    analyserRef.current.fftSize = 2048;           // 1024 bins — enough resolution for 20 distinct bars
-    analyserRef.current.smoothingTimeConstant = 0.6; // slight smoothing so peaks look fluid not jittery
+    analyserRef.current.fftSize = 2048;
+    analyserRef.current.smoothingTimeConstant = 0.6;
     analyserRef.current.minDecibels = -85;
     analyserRef.current.maxDecibels = -10;
+
+    // DynamicsCompressor — prevents hard clipping when gain > 1x (overdrive)
+    // Transparent at normal volumes, kicks in only at peaks above -3dBFS
+    compressorRef.current = audioCtxRef.current.createDynamicsCompressor();
+    compressorRef.current.threshold.value = -3;   // compress peaks above -3dBFS
+    compressorRef.current.knee.value = 6;          // soft knee — natural limiting
+    compressorRef.current.ratio.value = 4;         // 4:1 ratio — gentle
+    compressorRef.current.attack.value = 0.003;    // 3ms — fast enough to catch transients
+    compressorRef.current.release.value = 0.25;    // 250ms — smooth release
 
     const makeAudio = () => {
       const a = new Audio();
       a.preload = 'none';
       a.loop = false;
       a.crossOrigin = 'anonymous';
-      a.volume = 1; 
+      a.volume = 1;
       return a;
     };
 
@@ -129,16 +158,18 @@ export const useTwinDeckAudio = () => {
     gainARef.current = audioCtxRef.current.createGain();
     gainBRef.current = audioCtxRef.current.createGain();
 
+    // Signal chain: Deck → GainNode → Analyser → Compressor → Destination
     const wire = (audio: HTMLAudioElement, gain: GainNode) => {
       const src = audioCtxRef.current!.createMediaElementSource(audio);
       src.connect(gain);
       gain.connect(analyserRef.current!);
     };
-    
+
     wire(deckARef.current, gainARef.current);
     wire(deckBRef.current, gainBRef.current);
-    
-    analyserRef.current.connect(audioCtxRef.current.destination);
+
+    analyserRef.current.connect(compressorRef.current);
+    compressorRef.current.connect(audioCtxRef.current.destination);
 
     const monitor = (deck: HTMLAudioElement, next: HTMLAudioElement) => {
       deck.addEventListener('timeupdate', () => {
@@ -148,10 +179,31 @@ export const useTwinDeckAudio = () => {
         }
       });
     };
-    
+
     monitor(deckARef.current, deckBRef.current);
     monitor(deckBRef.current, deckARef.current);
   }, [doCrossfade]);
+
+  // ── Background audio persistence (Spotify/YT Music technique) ─────────────
+  // When tab is hidden, browsers may suspend the AudioContext to save battery.
+  // We resume it immediately on visibility change and re-acquire Wake Lock.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        // Resume suspended AudioContext
+        if (audioCtxRef.current?.state === 'suspended') {
+          audioCtxRef.current.resume().catch(() => {});
+        }
+        // Re-acquire wake lock (it's automatically released when page is hidden)
+        if (isPlayingRef.current) acquireWakeLock();
+      } else {
+        // Page hidden — ensure decks are still running (browser may have paused them)
+        // We don't release wake lock manually; the OS does it. Just re-acquire on return.
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [acquireWakeLock]);
 
   const attachMediaSession = useCallback((trackKey: string) => {
     if (!('mediaSession' in navigator)) return;
@@ -164,13 +216,34 @@ export const useTwinDeckAudio = () => {
     });
     navigator.mediaSession.playbackState = 'playing';
 
+    // Hardware button handlers (headset, lock screen, Car Play)
     navigator.mediaSession.setActionHandler('pause', () => {
       deckARef.current?.pause();
       deckBRef.current?.pause();
       store.setIsPlaying(false);
       navigator.mediaSession.playbackState = 'paused';
+      releaseWakeLock();
     });
-  }, [store]);
+    navigator.mediaSession.setActionHandler('play', () => {
+      const activeDeck = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      activeDeck?.play().then(() => {
+        store.setIsPlaying(true);
+        navigator.mediaSession.playbackState = 'playing';
+        acquireWakeLock();
+      }).catch(() => {});
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
+      if (idx !== -1) togglePlay(TRACKS[(idx + 1) % TRACKS.length].key);
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
+      if (idx !== -1) togglePlay(TRACKS[(idx - 1 + TRACKS.length) % TRACKS.length].key);
+    });
+
+    // Tell OS this is a "live" radio — hides seek bar on lock screen
+    navigator.mediaSession.setPositionState?.({ duration: Infinity, position: 0, playbackRate: 1 });
+  }, [store, acquireWakeLock, releaseWakeLock]);
 
   const togglePlay = useCallback((trackId?: string) => {
     initAudioSystem();
@@ -188,11 +261,11 @@ export const useTwinDeckAudio = () => {
       activeDeck?.pause();
       store.setIsPlaying(false);
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+      releaseWakeLock();
       return;
     }
 
-    // Case 2: Same track, currently paused → RESUME (no restart)
-    // Guard: deck must have a src (missing after page refresh → fall through to Case 3)
+    // Case 2: Same track, currently paused → RESUME
     if (isSameTrack && !isPlayingRef.current && currentTrackRef.current) {
       const activeDeck = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
       const hasSrc = activeDeck?.src && !activeDeck.src.endsWith('/');
@@ -200,13 +273,13 @@ export const useTwinDeckAudio = () => {
         activeDeck?.play().then(() => {
           store.setIsPlaying(true);
           if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+          acquireWakeLock();
         }).catch(console.error);
         return;
       }
-      // No src (page refresh): fall through to Case 3 to reload the track
     }
 
-    // Case 3: Different track → SWITCH (start fresh)
+    // Case 3: Different track → SWITCH
     store.setCurrentTrack(trackToPlay);
 
     if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
@@ -230,6 +303,7 @@ export const useTwinDeckAudio = () => {
       deckARef.current.play().then(() => {
         store.setIsPlaying(true);
         attachMediaSession(trackToPlay);
+        acquireWakeLock();
 
         // Pre-buffer deck B silently for gapless crossfade
         if (deckBRef.current?.paused) {
@@ -239,25 +313,18 @@ export const useTwinDeckAudio = () => {
         }
       }).catch(console.error);
     }
-  }, [initAudioSystem, store, attachMediaSession]);
+  }, [initAudioSystem, store, attachMediaSession, acquireWakeLock, releaseWakeLock]);
 
   const nextTrack = useCallback(() => {
-     const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
-     if (idx !== -1) {
-       const nxt = TRACKS[(idx + 1) % TRACKS.length];
-       togglePlay(nxt.key);
-     }
+    const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
+    if (idx !== -1) togglePlay(TRACKS[(idx + 1) % TRACKS.length].key);
   }, [togglePlay]);
 
   const prevTrack = useCallback(() => {
-     const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
-     if (idx !== -1) {
-       const prv = TRACKS[(idx - 1 + TRACKS.length) % TRACKS.length];
-       togglePlay(prv.key);
-     }
+    const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
+    if (idx !== -1) togglePlay(TRACKS[(idx - 1 + TRACKS.length) % TRACKS.length].key);
   }, [togglePlay]);
 
-  // Actual seeking
   const seekTo = useCallback((percentage: number) => {
     const active = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     if (active && active.duration) {
@@ -269,8 +336,8 @@ export const useTwinDeckAudio = () => {
     if (!isFadingRef.current && audioCtxRef.current) {
       const targetGain = activeDeckRef.current === 'A' ? gainARef.current : gainBRef.current;
       if (targetGain) {
-         targetGain.gain.cancelScheduledValues(audioCtxRef.current.currentTime);
-         targetGain.gain.value = sliderToVol(store.volume);
+        targetGain.gain.cancelScheduledValues(audioCtxRef.current.currentTime);
+        targetGain.gain.value = sliderToVol(store.volume);
       }
     }
   }, [store.volume]);
@@ -280,9 +347,16 @@ export const useTwinDeckAudio = () => {
       if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
       deckARef.current?.pause();
       deckBRef.current?.pause();
-      audioCtxRef.current?.close().catch(()=>{});
-    }
+      audioCtxRef.current?.close().catch(() => {});
+      releaseWakeLock();
+    };
+  }, [releaseWakeLock]);
+
+  const getActiveDeckRemaining = useCallback((): number | null => {
+    const active = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    if (!active || !active.duration) return null;
+    return Math.max(0, active.duration - active.currentTime);
   }, []);
 
-  return { togglePlay, nextTrack, prevTrack, seekTo, analyser: analyserRef.current };
+  return { togglePlay, nextTrack, prevTrack, seekTo, analyser: analyserRef.current, getActiveDeckRemaining };
 };

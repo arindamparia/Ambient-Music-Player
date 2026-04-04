@@ -37,12 +37,14 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
 
     const track = TRACKS.find((t: Track) => t.key === currentTrackId);
     const isVoice = ['omNamahShivay', 'aadidevMahadev', 'ramSankirtan'].includes(currentTrackId || '');
+    const category = track?.category ?? '';
     const themeColor = track?.theme || '#06d6a0';
 
-    // Set per-bar color: lightened theme so it stays visible on dark backgrounds
+    // Set per-bar color + category attribute for CSS overrides
     if (containerRef.current) {
       containerRef.current.style.setProperty('--bar-color', lightenColor(themeColor, 0.5, 0.8));
       containerRef.current.style.setProperty('--bar-color-dim', lightenColor(themeColor, 0.2, 0.25));
+      containerRef.current.dataset.category = category;
     }
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -83,11 +85,18 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
 
         const raw = getEnergy(Math.min(s, 0.99), Math.min(e, 1.0));
 
+        // Devotional: sharp flame-like spikes (mantra/chant transients)
+        // Nature: gentle organic curves (wind/rain/birds)
+        // Voice overrides within devotional for extra sharpness
         const v = isVoice
-          ? Math.min(1, Math.pow(raw, 2.0) * 3.2)
-          : Math.min(1, Math.pow(raw, 1.5) * 2.6);
+          ? Math.min(1, Math.pow(raw, 2.5) * 3.8)
+          : category === 'devotional'
+            ? Math.min(1, Math.pow(raw, 2.0) * 3.2)
+            : Math.min(1, Math.pow(raw, 1.2) * 2.2);  // nature: softer
 
-        const jt = isVoice ? 0 : (Math.random() - 0.5) * 2.5;
+        const jt = category === 'nature'
+          ? (Math.random() - 0.5) * 4.5  // more organic movement
+          : isVoice ? 0 : (Math.random() - 0.5) * 2.0;
         const bgH = Math.max(9, Math.min(98, 9 + v * 84 + jt));
         const smH = Math.max(3, Math.min(18, 3 + v * 15));
 

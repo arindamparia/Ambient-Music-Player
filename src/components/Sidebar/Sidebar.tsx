@@ -1,5 +1,6 @@
-import React from 'react';
-import { Play, Pause, ListMusic, PanelLeftClose } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Play, Pause, ListMusic, PanelLeftClose, Search } from 'lucide-react';
 import { TRACKS } from '../../constants/tracks';
 import './Sidebar.css';
 
@@ -9,6 +10,8 @@ interface SidebarProps {
   onSelectTrack: (key: string) => void;
   onClose: () => void;
 }
+
+type Category = 'all' | 'devotional' | 'nature';
 
 const TrackItem = ({
   track,
@@ -51,26 +54,77 @@ const TrackItem = ({
   </button>
 );
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTrackId, isPlaying, onSelectTrack, onClose }) => (
-  <aside className="sidebar">
-    <div className="sidebar__header">
-      <ListMusic size={16} />
-      <h2 className="sidebar__title">Library</h2>
-      <button className="sidebar__close-btn" onClick={onClose} title="Collapse Library">
-        <PanelLeftClose size={17} />
-      </button>
-    </div>
+const CAT_LABELS: Record<Category, string> = {
+  all: 'All',
+  devotional: '🕉 Devotional',
+  nature: '🌿 Nature',
+};
 
-    <div className="sidebar__track-list">
-      {TRACKS.map((track) => (
-        <TrackItem
-          key={track.key}
-          track={track}
-          isCurrent={currentTrackId === track.key && isPlaying}
-          isSelected={currentTrackId === track.key && !isPlaying}
-          onSelect={() => onSelectTrack(track.key)}
+export const Sidebar: React.FC<SidebarProps> = ({ currentTrackId, isPlaying, onSelectTrack, onClose }) => {
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<Category>('all');
+
+  const filtered = TRACKS.filter(t => {
+    const matchesQuery = t.label.toLowerCase().includes(query.toLowerCase());
+    const matchesCategory = category === 'all' || t.category === category;
+    return matchesQuery && matchesCategory;
+  });
+
+  return (
+    <aside className="sidebar">
+      <div className="sidebar__header">
+        <ListMusic size={16} />
+        <h2 className="sidebar__title">Library</h2>
+        <button className="sidebar__close-btn" onClick={onClose} title="Collapse Library">
+          <PanelLeftClose size={17} />
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="sidebar__search">
+        <Search size={13} className="sidebar__search-icon" />
+        <input
+          className="sidebar__search-input"
+          type="text"
+          placeholder="Search tracks…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
         />
-      ))}
-    </div>
-  </aside>
-);
+      </div>
+
+      {/* Category tabs */}
+      <div className="sidebar__cats">
+        {(Object.keys(CAT_LABELS) as Category[]).map(c => (
+          <button
+            key={c}
+            className={`sidebar__cat-btn ${category === c ? 'sidebar__cat-btn--active' : ''}`}
+            onClick={() => setCategory(c)}
+          >
+            {CAT_LABELS[c]}
+          </button>
+        ))}
+      </div>
+
+      <div className="sidebar__track-list">
+        {filtered.length === 0 && (
+          <div className="sidebar__empty">No tracks found</div>
+        )}
+        {filtered.map((track, i) => (
+          <motion.div
+            key={track.key}
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.28, delay: i * 0.03, ease: 'easeOut' }}
+          >
+            <TrackItem
+              track={track}
+              isCurrent={currentTrackId === track.key && isPlaying}
+              isSelected={currentTrackId === track.key && !isPlaying}
+              onSelect={() => onSelectTrack(track.key)}
+            />
+          </motion.div>
+        ))}
+      </div>
+    </aside>
+  );
+};

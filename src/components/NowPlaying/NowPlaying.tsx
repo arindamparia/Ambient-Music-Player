@@ -40,10 +40,10 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({
       {emoji && title ? (
         <motion.div
           key={title}
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 1.06, filter: 'blur(10px)' }}
-          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, scale: 0.92, y: 24, filter: 'blur(12px) saturate(0)' }}
+          animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px) saturate(1)' }}
+          exit={{ opacity: 0, scale: 1.04, filter: 'blur(22px) saturate(0)' }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="now-playing__hero"
         >
           <div className="now-playing__orb">{emoji}</div>

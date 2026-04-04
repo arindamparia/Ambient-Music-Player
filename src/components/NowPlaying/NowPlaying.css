@@ -99,7 +99,7 @@
   font-size: 12px;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.52);
   margin: 0;
 }
 
@@ -109,11 +109,82 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.42);
   font-size: 14px;
   text-align: center;
 }
 .now-playing__idle p { margin: 0; }
+
+/* ── Devotional category: sacred golden halo + mandala shimmer ─ */
+
+/* Replace default conic rim with a denser golden-saffron version */
+[data-category="devotional"] .now-playing__orb::after {
+  background: conic-gradient(
+    from 0deg,
+    var(--theme-color, #f59e0b),
+    #f59e0b 15%,
+    transparent 40%,
+    var(--theme-color, #4c1d95) 70%,
+    transparent 90%
+  );
+  opacity: 0.45;
+  animation: orb-spin 6s linear infinite;
+}
+
+/* Second halo ring — outer mandala shimmer */
+[data-category="devotional"] .now-playing__orb::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--theme-color, #4c1d95) 40%, transparent),
+    0 0 40px color-mix(in srgb, #f59e0b 15%, transparent);
+  animation: mandala-pulse 3.5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+/* Orb levitate gets a stronger sacred glow in devotional mode */
+[data-category="devotional"] .now-playing__orb {
+  animation: orb-levitate-sacred 5s ease-in-out infinite alternate;
+}
+
+@keyframes orb-levitate-sacred {
+  0%   { transform: translateY(-8px);
+         box-shadow: 0 32px 80px rgba(0,0,0,0.5),
+                     0 0 40px var(--theme-color, #4c1d95),
+                     0 0 80px rgba(245,158,11,0.2); }
+  100% { transform: translateY(8px);
+         box-shadow: 0 56px 100px rgba(0,0,0,0.55),
+                     0 0 100px var(--theme-color, #4c1d95),
+                     0 0 160px rgba(245,158,11,0.3); }
+}
+
+@keyframes mandala-pulse {
+  from { opacity: 0.4; transform: scale(1);     }
+  to   { opacity: 0.8; transform: scale(1.04);  }
+}
+
+/* ── Nature category: breathing organic orb ──────────────────── */
+[data-category="nature"] .now-playing__orb {
+  animation: orb-breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes orb-breathe {
+  0%, 100% { transform: translateY(-5px) scale(1);
+             box-shadow: 0 28px 70px rgba(0,0,0,0.45),
+                         0 0 28px var(--theme-color, #14532d); }
+  50%       { transform: translateY(5px)  scale(1.03);
+             box-shadow: 0 42px 90px rgba(0,0,0,0.5),
+                         0 0 60px var(--theme-color, #14532d); }
+}
+
+[data-category="nature"] .now-playing__orb::after {
+  background: conic-gradient(from 135deg, var(--theme-color, #14532d), transparent 55%);
+  opacity: 0.35;
+  animation: orb-spin 12s linear infinite;
+}
 
 /* ── Mobile ────────────────────────────────────────────────── */
 @media (max-width: 640px) {

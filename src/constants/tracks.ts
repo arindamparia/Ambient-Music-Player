@@ -23,24 +23,25 @@ export interface Track {
   emoji: string;
   label: string;
   theme: string;
+  category: 'devotional' | 'nature' | 'meditation';
 }
 
 export const TRACKS: Track[] = [
-  // ── New tracks first (highest priority) ───────────────────────────────────
-  { key: 'omNamahShivay', emoji: '🕉️', label: 'Om Namah Shivay', theme: '#4c1d95' }, // deep purple
-  { key: 'aadidevMahadev', emoji: '🏔️', label: 'Aadidev Mahadev', theme: '#1e3a8a' }, // dark blue
-  { key: 'ramSankirtan', emoji: '🪷', label: 'Shri Ram Sankirtanam', theme: '#9d174d' }, // deep pink/red
-  { key: 'healing', emoji: '✨', label: 'Healing Sounds', theme: '#b45309' }, // deep amber
-  { key: 'windMandir', emoji: '🛕', label: 'Winds of the Mandir', theme: '#0f766e' }, // deep teal
-  { key: 'shivaDeep', emoji: '🔱', label: 'Shiva — Deep Mystical', theme: '#3730a3' }, // indigo
-  { key: 'meditation', emoji: '🪘', label: 'Indian Meditation', theme: '#854d0e' }, // deep yellow/brown
-  { key: 'krishnaFlute', emoji: '🪈', label: 'Krishna Flute of Peace', theme: '#0369a1' }, // sky blue deep
-  // ── Original tracks ────────────────────────────────────────────────────────
-  { key: 'rain', emoji: '🌧️', label: 'Calming Rain', theme: '#334155' }, // slate
-  { key: 'rain2', emoji: '⛈️', label: 'Rain & Thunderstorms', theme: '#1e293b' }, // dark slate
-  { key: 'ocean', emoji: '🌊', label: 'Ocean Waves', theme: '#0c4a6e' }, // ocean blue
-  { key: 'forest', emoji: '🌲', label: 'Forest Ambience', theme: '#14532d' }, // deep green
-  { key: 'forest2', emoji: '🍃', label: 'Wind & Crickets', theme: '#166534' }, // mid green
-  { key: 'forest3', emoji: '🐦', label: 'Nature Birds', theme: '#065f46' }, // emerald green
-  { key: 'river', emoji: '🛶', label: 'River & Birds', theme: '#0f766e' }, // teal
+  // ── Devotional tracks ─────────────────────────────────────────────────────
+  { key: 'omNamahShivay', emoji: '🕉️', label: 'Om Namah Shivay', theme: '#4c1d95', category: 'devotional' },
+  { key: 'aadidevMahadev', emoji: '🏔️', label: 'Aadidev Mahadev', theme: '#1e3a8a', category: 'devotional' },
+  { key: 'ramSankirtan', emoji: '🪷', label: 'Shri Ram Sankirtanam', theme: '#9d174d', category: 'devotional' },
+  { key: 'healing', emoji: '✨', label: 'Healing Sounds', theme: '#b45309', category: 'devotional' },
+  { key: 'windMandir', emoji: '🛕', label: 'Winds of the Mandir', theme: '#0f766e', category: 'devotional' },
+  { key: 'shivaDeep', emoji: '🔱', label: 'Shiva — Deep Mystical', theme: '#3730a3', category: 'devotional' },
+  { key: 'meditation', emoji: '🪘', label: 'Indian Meditation', theme: '#854d0e', category: 'devotional' },
+  { key: 'krishnaFlute', emoji: '🪈', label: 'Krishna Flute of Peace', theme: '#0369a1', category: 'devotional' },
+  // ── Nature tracks ─────────────────────────────────────────────────────────
+  { key: 'rain', emoji: '🌧️', label: 'Calming Rain', theme: '#334155', category: 'nature' },
+  { key: 'rain2', emoji: '⛈️', label: 'Rain & Thunderstorms', theme: '#1e293b', category: 'nature' },
+  { key: 'ocean', emoji: '🌊', label: 'Ocean Waves', theme: '#0c4a6e', category: 'nature' },
+  { key: 'forest', emoji: '🌲', label: 'Forest Ambience', theme: '#14532d', category: 'nature' },
+  { key: 'forest2', emoji: '🍃', label: 'Wind & Crickets', theme: '#166534', category: 'nature' },
+  { key: 'forest3', emoji: '🐦', label: 'Nature Birds', theme: '#065f46', category: 'nature' },
+  { key: 'river', emoji: '🛶', label: 'River & Birds', theme: '#0f766e', category: 'nature' },
 ];

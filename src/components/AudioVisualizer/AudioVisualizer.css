@@ -52,3 +52,18 @@
   opacity: 0.9;
   min-height: 9vh;
 }
+
+/* Devotional: sharp flame-like tops, slightly narrower */
+[data-category="devotional"] .bg-bar {
+  border-top-left-radius: 1px;
+  border-top-right-radius: 1px;
+  transition: height 0.05s linear;
+}
+
+/* Nature: rounded organic tops, slower movement */
+[data-category="nature"] .bg-bar {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  transition: height 0.12s ease-out;
+  opacity: 0.8;
+}
