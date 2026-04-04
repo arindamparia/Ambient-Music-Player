@@ -87,16 +87,21 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
 
         // Devotional: sharp flame-like spikes (mantra/chant transients)
         // Nature: gentle organic curves (wind/rain/birds)
+        // Meditation: very subdued, slow-breathing bars
         // Voice overrides within devotional for extra sharpness
         const v = isVoice
           ? Math.min(1, Math.pow(raw, 2.5) * 3.8)
           : category === 'devotional'
             ? Math.min(1, Math.pow(raw, 2.0) * 3.2)
-            : Math.min(1, Math.pow(raw, 1.2) * 2.2);  // nature: softer
+            : category === 'meditation'
+              ? Math.min(1, Math.pow(raw, 1.5) * 1.8)  // meditation: very calm
+              : Math.min(1, Math.pow(raw, 1.2) * 2.2);  // nature: softer
 
         const jt = category === 'nature'
           ? (Math.random() - 0.5) * 4.5  // more organic movement
-          : isVoice ? 0 : (Math.random() - 0.5) * 2.0;
+          : category === 'meditation'
+            ? (Math.random() - 0.5) * 1.0  // barely any jitter
+            : isVoice ? 0 : (Math.random() - 0.5) * 2.0;
         const bgH = Math.max(9, Math.min(98, 9 + v * 84 + jt));
         const smH = Math.max(3, Math.min(18, 3 + v * 15));
 

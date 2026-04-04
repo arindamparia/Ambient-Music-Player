@@ -256,9 +256,12 @@ export const useTwinDeckAudio = () => {
     const isSameTrack = trackToPlay === currentTrackRef.current;
 
     // Case 1: Same track, currently playing → PAUSE
+    // Pause both decks so any in-progress crossfade is fully stopped.
     if (isSameTrack && isPlayingRef.current) {
-      const activeDeck = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-      activeDeck?.pause();
+      deckARef.current?.pause();
+      deckBRef.current?.pause();
+      if (fadeTimeoutRef.current) { clearTimeout(fadeTimeoutRef.current); fadeTimeoutRef.current = null; }
+      isFadingRef.current = false;
       store.setIsPlaying(false);
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
       releaseWakeLock();
@@ -354,8 +357,10 @@ export const useTwinDeckAudio = () => {
 
   const getActiveDeckRemaining = useCallback((): number | null => {
     const active = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-    if (!active || !active.duration) return null;
-    return Math.max(0, active.duration - active.currentTime);
+    if (!active) return null;
+    const dur = active.duration;
+    if (!dur || !isFinite(dur) || isNaN(dur)) return null;
+    return Math.max(0, dur - active.currentTime);
   }, []);
 
   return { togglePlay, nextTrack, prevTrack, seekTo, analyser: analyserRef.current, getActiveDeckRemaining };

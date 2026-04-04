@@ -121,6 +121,7 @@
 /* ── Track List ────────────────────────────────────────────── */
 .sidebar__track-list {
   flex: 1;
+  min-height: 0; /* required for overflow-y: auto to work inside a flex column */
   overflow-y: auto;
   padding: 10px 10px 80px; /* 80px bottom padding so last track clears the dock */
   display: flex;
@@ -216,6 +217,36 @@
   font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
   margin-top: 1px;
+}
+
+/* ── Mobile ────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Top-sheet: safe area padding at top for notch/dynamic island */
+  .sidebar__header {
+    padding-top: max(env(safe-area-inset-top, 0px) + 16px, 22px);
+  }
+
+  /* Category tabs: scroll horizontally instead of overflowing */
+  .sidebar__cats {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 8px;
+  }
+  .sidebar__cats::-webkit-scrollbar { display: none; }
+  .sidebar__cat-btn {
+    flex: 0 0 auto; /* natural content width, no forced stretch */
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  /* Slightly larger tap targets */
+  .track-item {
+    padding: 11px 10px;
+    min-height: 48px;
+  }
+  .track-item__title { font-size: 13.5px; }
 }
 
 /* EQ mini bars beside playing track */

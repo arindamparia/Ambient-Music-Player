@@ -9,7 +9,8 @@
   /* Aura morphism: theme color radiates upward from the bar */
   box-shadow:
     0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 -28px 70px color-mix(in srgb, var(--theme-color, #06d6a0) 12%, transparent),
+    0 -40px 100px color-mix(in srgb, var(--theme-color, #06d6a0) 20%, transparent),
+    0 -80px 160px color-mix(in srgb, var(--theme-color, #06d6a0) 8%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   position: relative;
   transition: box-shadow 1.2s ease-in-out;
@@ -137,7 +138,21 @@
 .bottom-bar__center {
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.center-btns {
+  display: flex;
+  align-items: center;
   gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── Desktop: fix DOM order (display:contents on top-row puts info+volume before center) */
+@media (min-width: 641px) {
+  .bottom-bar__info   { order: 1; }
+  .bottom-bar__center { order: 2; }
+  .bottom-bar__volume { order: 3; }
 }
 
 .skip-btn {
@@ -153,7 +168,7 @@
   justify-content: center;
   transition: color 0.18s ease, transform 0.15s ease;
 }
-.skip-btn:hover  { color: #fff; transform: scale(1.12); }
+.skip-btn:hover  { color: var(--theme-color, #fff); transform: scale(1.12); }
 .skip-btn:active { transform: scale(0.9); }
 
 .play-btn {
@@ -167,10 +182,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(255,255,255,0.18);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow:
+    0 4px 20px color-mix(in srgb, var(--theme-color, #06d6a0) 35%, rgba(255,255,255,0.15));
+  transition: transform 0.18s ease, box-shadow 1.2s ease;
 }
-.play-btn:hover  { transform: scale(1.06); box-shadow: 0 6px 28px rgba(255,255,255,0.28); }
+.play-btn:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 6px 32px color-mix(in srgb, var(--theme-color, #06d6a0) 50%, rgba(255,255,255,0.25));
+}
 .play-btn:active { transform: scale(0.94); }
 
 /* ── Volume ────────────────────────────────────────────────── */
@@ -426,15 +446,89 @@
   animation-play-state: paused;
 }
 
-/* ── Mobile ─────────────────────────────────────────────────── */
+/* ── Desktop: top-row is transparent (children join dock flex) ── */
+.bottom-bar__top-row {
+  display: contents;
+}
+
+/* ── Mobile: 2-row bottom bar ───────────────────────────────── */
 @media (max-width: 640px) {
+  /* Dock becomes a column */
   .bottom-bar__dock {
-    padding: 0 16px;
-    min-height: 70px;
+    flex-direction: column;
+    padding: 0;
+    min-height: unset;
+    gap: 0;
+    align-items: stretch;
   }
-  .bottom-bar__track-title { max-width: 110px; }
-  .bottom-bar__status       { display: none; }
-  .vol-slider { width: 70px; }
-  .play-btn { width: 46px; height: 46px; }
-  .sleep-countdown { display: none; }
+
+  /* ── Row 1: info + secondary controls ─────────────── */
+  .bottom-bar__top-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px 8px;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .bottom-bar__info {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+    gap: 10px;
+  }
+  .bottom-bar__art {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    border-radius: 8px;
+  }
+  .bottom-bar__track-title {
+    font-size: 13px;
+    max-width: 160px; /* more room now we have a full row */
+  }
+  .bottom-bar__status { display: none; }
+
+  /* Volume in row 1: compact */
+  .bottom-bar__volume {
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+  .vol-slider { display: block; width: 90px; }
+  .vol-level-badge {
+    font-size: 10px;
+    min-width: 24px;
+  }
+
+  /* ── Row 2: play controls + sleep ──────────────────── */
+  .bottom-bar__center {
+    flex: 1;
+    padding: 8px 16px 14px;
+  }
+  .center-balance { flex: 1; }
+  .bottom-bar__center .sleep-timer {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .center-btns { gap: 24px; }
+  .play-btn { width: 52px; height: 52px; }
+  .skip-btn { width: 34px; height: 34px; }
+
+  /* Sleep popover: full-width fixed sheet above the 2-row bar */
+  .sleep-popover {
+    position: fixed;
+    bottom: 128px; /* clears both rows + progress strip */
+    right: 12px;
+    left: 12px;
+    min-width: unset;
+    border-radius: 16px;
+  }
+}
+
+/* Extra-small phones: drop the art thumbnail */
+@media (max-width: 370px) {
+  .bottom-bar__art { display: none; }
+  .bottom-bar__track-title { max-width: 120px; }
 }

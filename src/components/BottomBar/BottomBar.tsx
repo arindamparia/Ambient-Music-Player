@@ -87,40 +87,68 @@ export const BottomBar: React.FC<BottomBarProps> = ({
       </div>
 
       <div className="bottom-bar__dock">
-        {/* Now playing info */}
-        <div className="bottom-bar__info">
-          {emoji && (
-            <>
-              <div className="bottom-bar__art">{emoji}</div>
-              <div className="bottom-bar__meta">
-                <span className="bottom-bar__track-title">{title}</span>
-                <span className={`bottom-bar__status ${isPlaying ? 'is-playing' : ''}`}>
-                  {isPlaying ? '● Playing' : '◌ Paused'}
-                </span>
-              </div>
-            </>
-          )}
-        </div>
+        {/* ── Row 1 (mobile top row): info + secondary controls ─── */}
+        <div className="bottom-bar__top-row">
+          {/* Now playing info */}
+          <div className="bottom-bar__info">
+            {emoji && (
+              <>
+                <div className="bottom-bar__art">{emoji}</div>
+                <div className="bottom-bar__meta">
+                  <span className="bottom-bar__track-title">{title}</span>
+                  <span className={`bottom-bar__status ${isPlaying ? 'is-playing' : ''}`}>
+                    {isPlaying ? '● Playing' : '◌ Paused'}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
 
-        {/* Play controls */}
+          {/* Volume */}
+          <div className="bottom-bar__volume">
+            {/* Mute */}
+            <button
+              className="vol-mute-btn"
+              onClick={() => onVolumeChange(volume > 0 ? 0 : 0.8)}
+              aria-label="Toggle mute"
+            >
+              {volume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
+            </button>
+
+            {/* Volume slider + level label (always visible) */}
+            <div className="vol-wrap">
+              <span className="vol-level-badge">{volLabel}</span>
+              <input
+                ref={volInputRef}
+                className="vol-slider"
+                type="range"
+                min="0" max="1" step="0.01"
+                value={volume}
+                onChange={handleChange}
+                aria-label="Volume"
+                style={{ '--fill': `${fillPct}%` } as React.CSSProperties}
+              />
+            </div>
+          </div>
+        </div>{/* end top-row */}
+
+        {/* ── Row 2 (mobile bottom row): Play controls + Sleep ──── */}
         <div className="bottom-bar__center">
-          <button className="skip-btn" onClick={onPrev} aria-label="Previous track">
-            <SkipBack size={20} fill="currentColor" />
-          </button>
-          <button className="play-btn" onClick={onPlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
-            {isPlaying
-              ? <Pause size={24} fill="currentColor" />
-              : <Play size={24} fill="currentColor" style={{ marginLeft: 2 }} />
-            }
-          </button>
-          <button className="skip-btn" onClick={onNext} aria-label="Next track">
-            <SkipForward size={20} fill="currentColor" />
-          </button>
-        </div>
-
-        {/* Volume + Sleep Timer */}
-        <div className="bottom-bar__volume">
-          {/* Sleep Timer */}
+          <div className="center-balance" />
+          <div className="center-btns">
+            <button className="skip-btn" onClick={onPrev} aria-label="Previous track">
+              <SkipBack size={20} fill="currentColor" />
+            </button>
+            <button className="play-btn" onClick={onPlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
+              {isPlaying
+                ? <Pause size={24} fill="currentColor" />
+                : <Play size={24} fill="currentColor" style={{ marginLeft: 2 }} />
+              }
+            </button>
+            <button className="skip-btn" onClick={onNext} aria-label="Next track">
+              <SkipForward size={20} fill="currentColor" />
+            </button>
+          </div>
           <div className="sleep-timer" ref={timerRef}>
             <button
               className={`sleep-btn ${sleepSecondsLeft ? 'sleep-btn--active' : ''}`}
@@ -167,9 +195,10 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                     type="number"
                     min="1"
                     max="999"
+                    step="1"
                     placeholder="Custom min"
                     value={customMin}
-                    onChange={e => setCustomMin(e.target.value)}
+                    onChange={e => setCustomMin(e.target.value.replace(/[^0-9]/g, ''))}
                     onKeyDown={e => { if (e.key === 'Enter') applyCustom(); }}
                   />
                   <button
@@ -193,31 +222,8 @@ export const BottomBar: React.FC<BottomBarProps> = ({
               </div>
             )}
           </div>
-
-          {/* Mute */}
-          <button
-            className="vol-mute-btn"
-            onClick={() => onVolumeChange(volume > 0 ? 0 : 0.8)}
-            aria-label="Toggle mute"
-          >
-            {volume === 0 ? <VolumeX size={17} /> : <Volume2 size={17} />}
-          </button>
-
-          {/* Volume slider + level label (always visible) */}
-          <div className="vol-wrap">
-            <span className="vol-level-badge">{volLabel}</span>
-            <input
-              ref={volInputRef}
-              className="vol-slider"
-              type="range"
-              min="0" max="1" step="0.01"
-              value={volume}
-              onChange={handleChange}
-              aria-label="Volume"
-              style={{ '--fill': `${fillPct}%` } as React.CSSProperties}
-            />
-          </div>
         </div>
+
       </div>
     </footer>
   );

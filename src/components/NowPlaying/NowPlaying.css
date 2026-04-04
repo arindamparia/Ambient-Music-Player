@@ -186,12 +186,71 @@
   animation: orb-spin 12s linear infinite;
 }
 
+/* ── Meditation category: deep stillness, slow centered pulse ─ */
+[data-category="meditation"] .now-playing__orb {
+  animation: orb-meditate 8s ease-in-out infinite alternate;
+}
+
+@keyframes orb-meditate {
+  0%   { transform: translateY(-5px) scale(0.98);
+         box-shadow: 0 20px 55px rgba(0,0,0,0.45),
+                     0 0 24px var(--theme-color, #854d0e); }
+  100% { transform: translateY(5px) scale(1.02);
+         box-shadow: 0 38px 75px rgba(0,0,0,0.5),
+                     0 0 55px var(--theme-color, #854d0e); }
+}
+
+/* Very slow, subtle rim — half-arc conic */
+[data-category="meditation"] .now-playing__orb::after {
+  background: conic-gradient(from 90deg, var(--theme-color, #854d0e), transparent 55%);
+  opacity: 0.22;
+  animation: orb-spin 20s linear infinite;
+}
+
+/* Soft outer halo ring */
+[data-category="meditation"] .now-playing__orb::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--theme-color, #854d0e) 30%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--theme-color, #854d0e) 20%, transparent);
+  animation: mandala-pulse 5s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
 /* ── Mobile ────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .now-playing__orb {
-    width: 130px;
-    height: 130px;
-    font-size: 58px;
+  .now-playing__hero {
+    padding: 56px 20px 24px; /* top clearance for hamburger, bottom for 2-row dock */
+    gap: 14px;
   }
-  .open-library-btn { display: none; } /* mobile uses header hamburger */
+  .now-playing__orb {
+    width: 116px;
+    height: 116px;
+    font-size: 50px;
+  }
+  .now-playing__title {
+    font-size: clamp(22px, 6vw, 34px);
+  }
+  /* Devotional: shrink outer mandala ring on small screens */
+  [data-category="devotional"] .now-playing__orb::before {
+    inset: -10px;
+  }
+  .open-library-btn { display: none; } /* mobile uses hamburger */
+}
+
+/* Landscape / short screens: compress everything */
+@media (max-width: 640px) and (max-height: 500px) {
+  .now-playing__hero {
+    padding: 44px 20px 10px;
+    gap: 8px;
+  }
+  .now-playing__orb {
+    width: 76px;
+    height: 76px;
+    font-size: 32px;
+  }
+  .now-playing__title    { font-size: 18px; }
+  .now-playing__subtitle { display: none; }
 }

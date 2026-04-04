@@ -67,3 +67,11 @@
   transition: height 0.12s ease-out;
   opacity: 0.8;
 }
+
+/* Meditation: ultra-smooth, very slow, subdued bars */
+[data-category="meditation"] .bg-bar {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  transition: height 0.22s ease-in-out;
+  opacity: 0.65;
+}
