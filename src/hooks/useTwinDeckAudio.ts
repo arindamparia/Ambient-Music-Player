@@ -217,46 +217,6 @@ export const useTwinDeckAudio = () => {
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [acquireWakeLock]);
 
-  const attachMediaSession = useCallback((trackKey: string) => {
-    if (!('mediaSession' in navigator)) return;
-    const track = TRACKS.find(t => t.key === trackKey);
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track?.label || 'Ambient Sound',
-      artist: 'Ambient UI',
-      album: 'Deep Focus',
-    });
-    navigator.mediaSession.playbackState = 'playing';
-
-    // Hardware button handlers (headset, lock screen, Car Play)
-    navigator.mediaSession.setActionHandler('pause', () => {
-      deckARef.current?.pause();
-      deckBRef.current?.pause();
-      store.setIsPlaying(false);
-      navigator.mediaSession.playbackState = 'paused';
-      releaseWakeLock();
-    });
-    navigator.mediaSession.setActionHandler('play', () => {
-      const activeDeck = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-      activeDeck?.play().then(() => {
-        store.setIsPlaying(true);
-        navigator.mediaSession.playbackState = 'playing';
-        acquireWakeLock();
-      }).catch(() => {});
-    });
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-      const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
-      if (idx !== -1) togglePlay(TRACKS[(idx + 1) % TRACKS.length].key);
-    });
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-      const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
-      if (idx !== -1) togglePlay(TRACKS[(idx - 1 + TRACKS.length) % TRACKS.length].key);
-    });
-
-    // Tell OS this is a "live" radio — hides seek bar on lock screen
-    navigator.mediaSession.setPositionState?.({ duration: Infinity, position: 0, playbackRate: 1 });
-  }, [store, acquireWakeLock, releaseWakeLock]);
-
   const togglePlay = useCallback((trackId?: string) => {
     initAudioSystem();
 
@@ -328,18 +288,23 @@ export const useTwinDeckAudio = () => {
         }
 
         store.setIsPlaying(true);
-        attachMediaSession(trackToPlay);
+
+        // Tell OS this is a "live" radio — hides seek bar on lock screen
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.setPositionState?.({ duration: Infinity, position: 0, playbackRate: 1 });
+        }
+
         acquireWakeLock();
 
         // Pre-buffer deck B silently for gapless crossfade
         if (deckBRef.current?.paused) {
           deckBRef.current.play()
             .then(() => { deckBRef.current?.pause(); deckBRef.current!.currentTime = 0; })
-            .catch(() => {});
+            .catch(() => { });
         }
       }).catch(console.error);
     }
-  }, [initAudioSystem, store, attachMediaSession, acquireWakeLock, releaseWakeLock]);
+  }, [initAudioSystem, store, acquireWakeLock, releaseWakeLock]);
 
   const nextTrack = useCallback(() => {
     const idx = TRACKS.findIndex(t => t.key === currentTrackRef.current);
@@ -386,5 +351,5 @@ export const useTwinDeckAudio = () => {
     return Math.max(0, dur - active.currentTime);
   }, []);
 
-  return { togglePlay, nextTrack, prevTrack, seekTo, analyser: analyserRef.current, getActiveDeckRemaining };
+  return { togglePlay, nextTrack, prevTrack, seekTo, analyserRef, getActiveDeckRemaining };
 };

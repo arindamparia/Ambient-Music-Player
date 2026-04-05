@@ -17,7 +17,7 @@ import './Player.css';
 
 export const Player: React.FC = () => {
   const { currentTrackId, isPlaying, volume, setVolume } = useAudioStore();
-  const { togglePlay, nextTrack, prevTrack, analyser, getActiveDeckRemaining } = useTwinDeckAudio();
+  const { togglePlay, nextTrack, prevTrack, analyserRef, getActiveDeckRemaining } = useTwinDeckAudio();
 
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -153,7 +153,7 @@ export const Player: React.FC = () => {
       onKeyDown={showControls}
     >
       {/* Full-screen reactive visualizer (z-index: 0) */}
-      <AudioVisualizer analyser={analyser} />
+      <AudioVisualizer analyserRef={analyserRef} />
 
       {/* Category-specific particle effects (z-index: 1) */}
       <ParticleOverlay />
