@@ -7,7 +7,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      injectRegister: 'auto',
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Ambient Music Player',
         short_name: 'Ambient',
@@ -16,6 +17,8 @@ export default defineConfig({
         background_color: '#0c0c14',
         display: 'standalone',
         orientation: 'portrait',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -29,7 +32,45 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ]
-      }
-    })
+      },
+      workbox: {
+        // New SW immediately takes over — no waiting for old tabs to close
+        skipWaiting: true,
+        clientsClaim: true,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            // Google Fonts stylesheets
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Google Fonts files
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // Audio streams — network-only (streams can't be cached reliably)
+            urlPattern: /\.(mp3|ogg|wav|aac|m4a)(\?.*)?$/i,
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+      devOptions: {
+        // Enable SW in dev so you can test the install prompt locally
+        enabled: true,
+        type: 'module',
+      },
+    }),
   ],
 });

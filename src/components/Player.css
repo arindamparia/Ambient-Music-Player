@@ -408,9 +408,15 @@
   .player--sidebar-open .player__mobile-menu { display: none; }
 
   /* Backdrop covers everything including the bottom bar */
-  .player__backdrop    { z-index: 40; display: block; }
+  .player__backdrop    { z-index: 40; display: block; pointer-events: all; touch-action: none; }
   /* Sidebar sits above the backdrop */
   .player .sidebar     { z-index: 50; }
 
   .player__mobile-menu { display: flex; z-index: 60; }
+
+  /* Disable all interaction behind the backdrop when sidebar is open */
+  .player--sidebar-open .bottom-bar,
+  .player--sidebar-open .now-playing {
+    pointer-events: none;
+  }
 }

@@ -13,6 +13,16 @@ document.addEventListener('cut', (e) => {
   if ((e.target as HTMLElement).closest('input, textarea')) return;
   e.preventDefault();
 });
+// When a new service worker takes over (new deploy), reload once to serve fresh assets.
+// The flag prevents an infinite reload loop.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (sessionStorage.getItem('sw-reloaded')) return;
+    sessionStorage.setItem('sw-reloaded', '1');
+    window.location.reload();
+  });
+}
+
 // Block context menu (right-click) to prevent "Copy" from context menu
 // Only active in production — dev mode keeps right-click for DevTools
 if (import.meta.env.PROD) {
