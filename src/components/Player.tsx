@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { TRACKS } from '../constants/tracks';
 import { useAudioStore } from '../store/useAudioStore';
 import { useTwinDeckAudio } from '../hooks/useTwinDeckAudio';
+import { useMediaSession } from '../hooks/useMediaSession';
 import { AudioVisualizer } from './AudioVisualizer/AudioVisualizer';
 import { Sidebar } from './Sidebar/Sidebar';
 import { NowPlaying } from './NowPlaying/NowPlaying';
@@ -123,6 +124,15 @@ export const Player: React.FC = () => {
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
+
+  // ── Media Session (OS notification + lock screen controls) ───────────────
+  useMediaSession({
+    currentTrackId,
+    isPlaying,
+    onPlayPause: () => togglePlay(),
+    onNext: nextTrack,
+    onPrev: prevTrack,
+  });
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleSelectTrack = (key: string) => {
