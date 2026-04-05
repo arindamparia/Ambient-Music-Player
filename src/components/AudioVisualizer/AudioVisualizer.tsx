@@ -21,6 +21,13 @@ const hexToRgba = (hex: string, alpha: number): string => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 
+// On mobile (high-refresh-rate phones like S25 Ultra at 120 Hz), cap RAF to 60 fps
+// to halve GPU work. Cap DPR to 2 — S25 Ultra DPR is 4, meaning 4× more canvas pixels
+// than a standard HD screen, with no visible quality benefit for a music visualizer.
+const IS_MOBILE_VIZ = window.innerWidth < 768 || navigator.maxTouchPoints > 0;
+const VIZ_FRAME_MS  = IS_MOBILE_VIZ ? 1000 / 60 : 0; // 0 = no throttle on desktop
+const MAX_DPR       = IS_MOBILE_VIZ ? 2 : (window.devicePixelRatio || 1);
+
 export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,12 +35,12 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
   const waveReqRef = useRef<number>(0);
   const { isPlaying, currentTrackId, visualizerMode } = useAudioStore();
 
-  // Canvas resize (DPR-aware)
+  // Canvas resize (DPR-aware, capped on mobile)
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = window.innerWidth + 'px';
@@ -75,8 +82,11 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
     }
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const animate = () => {
+    let lastBarsFrame = 0;
+    const animate = (now: number) => {
       barsReqRef.current = requestAnimationFrame(animate);
+      if (VIZ_FRAME_MS > 0 && now - lastBarsFrame < VIZ_FRAME_MS - 0.5) return;
+      lastBarsFrame = now;
       if (!analyser || !containerRef.current) return;
       analyser.getByteFrequencyData(dataArray);
       const bins = dataArray.length;
@@ -112,7 +122,7 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
       containerRef.current.style.setProperty('--glow-blur', `${Math.round(avgEnergy * 220)}px`);
       containerRef.current.style.setProperty('--opacity-state', String(Math.min(0.75, 0.25 + avgEnergy * 0.9)));
     };
-    animate();
+    animate(0);
     return () => { cancelAnimationFrame(barsReqRef.current); barsReqRef.current = 0; };
   }, [analyser, isPlaying, currentTrackId, visualizerMode]);
 
@@ -142,11 +152,14 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
     const lerpA = category === 'meditation' ? 0.07 : 0.16;
     const lerpB = lerpA * 0.38; // shadow wave follows primary but lags behind
 
-    const animate = () => {
+    let lastWaveFrame = 0;
+    const animate = (now: number) => {
       waveReqRef.current = requestAnimationFrame(animate);
+      if (VIZ_FRAME_MS > 0 && now - lastWaveFrame < VIZ_FRAME_MS - 0.5) return;
+      lastWaveFrame = now;
       if (!analyser) return;
 
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       const W = window.innerWidth;
       const H = window.innerHeight;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -228,7 +241,7 @@ export const AudioVisualizer = ({ analyser }: AudioVisualizerProps) => {
       });
     };
 
-    animate();
+    animate(0);
     return () => { cancelAnimationFrame(waveReqRef.current); waveReqRef.current = 0; };
   }, [analyser, isPlaying, currentTrackId, visualizerMode]);
 

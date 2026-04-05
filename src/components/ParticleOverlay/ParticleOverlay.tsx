@@ -5,6 +5,11 @@ import './ParticleOverlay.css';
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
+// Cap canvas RAF to 60 fps on mobile (high-refresh-rate phones like S25 Ultra run at 120 Hz
+// by default, doubling CPU/GPU work and causing unnecessary heating).
+const IS_MOBILE = window.innerWidth < 768 || navigator.maxTouchPoints > 0;
+const FRAME_MS  = IS_MOBILE ? 1000 / 60 : 0; // 0 = no throttle (run at native refresh)
+
 type ParticleType = 'rain' | 'leaves' | 'petals' | 'fireflies' | 'bubbles' | null;
 
 const getParticleType = (category: string, trackKey: string | null): ParticleType => {
@@ -58,8 +63,11 @@ const RainCanvas = ({ active }: { active: boolean }) => {
     resize();
     window.addEventListener('resize', resize);
 
-    const draw = () => {
+    let lastFrame = 0;
+    const draw = (now: number) => {
       rafRef.current = requestAnimationFrame(draw);
+      if (FRAME_MS > 0 && now - lastFrame < FRAME_MS - 0.5) return;
+      lastFrame = now;
       if (!activeRef.current || document.hidden) return;
       ctx.clearRect(0, 0, W, H);
       for (const d of drops) {
@@ -159,8 +167,11 @@ const PetalsCanvas = ({ active, themeColor }: { active: boolean; themeColor: str
     resize();
     window.addEventListener('resize', resize);
 
-    const draw = () => {
+    let lastFrame = 0;
+    const draw = (now: number) => {
       rafRef.current = requestAnimationFrame(draw);
+      if (FRAME_MS > 0 && now - lastFrame < FRAME_MS - 0.5) return;
+      lastFrame = now;
       if (!activeRef.current || document.hidden) return;
       ctx.clearRect(0, 0, W, H);
       t += 0.016;
@@ -172,8 +183,6 @@ const PetalsCanvas = ({ active, themeColor }: { active: boolean; themeColor: str
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rot);
         ctx.globalAlpha = p.opacity;
-        ctx.shadowColor = `rgba(${p.r},${p.g},${p.b},0.55)`;
-        ctx.shadowBlur = 7;
         ctx.fillStyle = `rgb(${p.r},${p.g},${p.b})`;
         ctx.beginPath();
         ctx.ellipse(0, 0, p.size * 0.48, p.size, 0, 0, Math.PI * 2);
@@ -190,7 +199,6 @@ const PetalsCanvas = ({ active, themeColor }: { active: boolean; themeColor: str
       // ── Emoji flowers (same physics as petals) ───────────────────────────
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
-      ctx.shadowBlur   = 0;
       for (const f of flowers) {
         const swayDx = Math.sin(t * 1.1 + f.swayOffset) * f.swayAmp * 0.5;
         ctx.save();
@@ -264,8 +272,11 @@ const FirefliesCanvas = ({ active, themeColor }: { active: boolean; themeColor: 
     resize();
     window.addEventListener('resize', resize);
 
-    const draw = () => {
+    let lastFrame = 0;
+    const draw = (now: number) => {
       rafRef.current = requestAnimationFrame(draw);
+      if (FRAME_MS > 0 && now - lastFrame < FRAME_MS - 0.5) return;
+      lastFrame = now;
       if (!activeRef.current || document.hidden) return;
 
       // Partial clear → luminous trail effect
