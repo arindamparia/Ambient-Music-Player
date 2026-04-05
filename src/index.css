@@ -88,7 +88,13 @@ html, body, #root {
   margin: 0;
   padding: 0;
   background-color: #0a0a0f;
-  overflow: hidden;          /* prevent page scroll in PWA / full-screen mode */
+}
+
+/* Lock scroll only when running as an installed PWA — browser tabs scroll normally */
+@media (display-mode: standalone) {
+  html, body, #root {
+    overflow: hidden;
+  }
 }
 
 /* ── Disable text selection and tap highlight across the entire app ── */
