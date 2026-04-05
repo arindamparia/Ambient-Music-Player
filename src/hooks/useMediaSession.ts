@@ -37,11 +37,13 @@ export const useMediaSession = ({
   // This ensures blob: URLs are cached before the user plays any track,
   // so metadata is always set once with artwork (no flicker).
   useEffect(() => {
-    const id = requestIdleCallback
+    const hasIdleCallback = 'requestIdleCallback' in window;
+    const id = hasIdleCallback
       ? requestIdleCallback(() => prewarmArtworkCache(), { timeout: 5000 })
       : setTimeout(() => prewarmArtworkCache(), 2000) as unknown as number;
     return () => {
-      requestIdleCallback ? cancelIdleCallback(id) : clearTimeout(id);
+      if (hasIdleCallback) cancelIdleCallback(id as number);
+      else clearTimeout(id);
     };
   }, []);
 

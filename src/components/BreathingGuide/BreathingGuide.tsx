@@ -28,7 +28,7 @@ export const BreathingGuide = () => {
   const phase = PHASES[phaseIdx];
 
   useEffect(() => {
-    if (!show) { setPhaseIdx(0); return; }
+    if (!show) { setTimeout(() => setPhaseIdx(0), 0); return; }
     const t = setTimeout(() => setPhaseIdx(i => (i + 1) % 4), DURATIONS[phase]);
     return () => clearTimeout(t);
   }, [phaseIdx, show, phase]);

@@ -88,13 +88,19 @@ html, body, #root {
   margin: 0;
   padding: 0;
   background-color: #0a0a0f;
+  overflow: hidden;          /* prevent page scroll in PWA / full-screen mode */
 }
 
-/* ── Disable text selection and copy across the entire app ───── */
+/* ── Disable text selection and tap highlight across the entire app ── */
 /* Inputs/textareas retain selection so users can still type/edit */
 *:not(input):not(textarea) {
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Remove Chrome/WebKit blue/orange tap highlight on interactive elements */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Prevent drag-selection starting on the root */

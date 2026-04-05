@@ -8,32 +8,33 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+// Computed once — userAgent never changes during a session
+const detectIOS = (): boolean => {
+  const ua = navigator.userAgent;
+  const ios =
+    (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) &&
+    !(window as unknown as { MSStream?: unknown }).MSStream;
+  return !!(ios && /Safari/.test(ua) && !/CriOS|FxiOS/.test(ua));
+};
+
 export const InstallPrompt: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  // Lazy init — computed once, no effect needed
+  const [isIOS] = useState(detectIOS);
+  const [installed, setInstalled] = useState(
+    () => window.matchMedia('(display-mode: standalone)').matches
+  );
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Already running as installed PWA
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setInstalled(true);
-      return;
-    }
+    if (installed) return;
 
     // Check if dismissed recently (7 day cooldown)
     const dismissed = localStorage.getItem('pwa-install-dismissed');
     if (dismissed && Date.now() - parseInt(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
 
-    const ua = navigator.userAgent;
-    const ios =
-      (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) &&
-      !(window as unknown as { MSStream?: unknown }).MSStream;
-    const isSafari = ios && /Safari/.test(ua) && !/CriOS|FxiOS/.test(ua);
-
-    if (isSafari) {
-      setIsIOS(true);
+    if (isIOS) {
       timerRef.current = setTimeout(() => setVisible(true), 4000);
     }
 
@@ -49,7 +50,7 @@ export const InstallPrompt: React.FC = () => {
       window.removeEventListener('beforeinstallprompt', handler);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, []);
+  }, [installed, isIOS]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;

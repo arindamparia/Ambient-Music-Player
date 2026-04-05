@@ -3,9 +3,8 @@ import { useAudioStore } from '../store/useAudioStore';
 import { AUDIO_URLS, TRACKS } from '../constants/tracks';
 
 const CROSSFADE_SEC = 4.0;
-// Linear mapping: slider 0-1 → gain 0-1x. No overdrive — keeps audio clean.
-export const sliderToVol = (s: number) => s;
-export const volToSlider = (v: number) => v;
+// Linear mapping: slider 0-1 → gain 0-1x
+const sliderToVol = (s: number) => s;
 
 export const useTwinDeckAudio = () => {
   const store = useAudioStore();
@@ -44,8 +43,8 @@ export const useTwinDeckAudio = () => {
     if (!('wakeLock' in navigator)) return;
     try {
       if (wakeLockRef.current && !wakeLockRef.current.released) return;
-      wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-    } catch (_) { /* permission denied or not supported */ }
+      wakeLockRef.current = await (navigator as Navigator & { wakeLock: { request(t: string): Promise<WakeLockSentinel> } }).wakeLock.request('screen');
+    } catch { /* permission denied or not supported */ }
   }, []);
 
   const releaseWakeLock = useCallback(() => {
@@ -136,7 +135,7 @@ export const useTwinDeckAudio = () => {
   const initAudioSystem = useCallback(() => {
     if (audioCtxRef.current) return;
 
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext!;
     audioCtxRef.current = new AudioContextClass();
 
     // Analyser — FFT for visualizer (read-only, does not modify audio)

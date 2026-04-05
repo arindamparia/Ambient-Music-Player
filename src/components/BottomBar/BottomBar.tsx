@@ -44,7 +44,6 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   const [timerOpen, setTimerOpen] = useState(false);
   const [customMin, setCustomMin] = useState('');
   const timerRef = useRef<HTMLDivElement>(null);
-  const customInputRef = useRef<HTMLInputElement>(null);
 
   // Emoji bounce on track change
   const [artPopping, setArtPopping] = useState(false);
@@ -52,8 +51,10 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   useEffect(() => {
     if (emoji && emoji !== prevEmoji.current) {
       prevEmoji.current = emoji;
-      setArtPopping(true);
-      const t = setTimeout(() => setArtPopping(false), 400);
+      const t = setTimeout(() => {
+        setArtPopping(true);
+        setTimeout(() => setArtPopping(false), 400);
+      }, 0);
       return () => clearTimeout(t);
     }
   }, [emoji]);
@@ -232,7 +233,6 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                 {/* Custom minutes */}
                 <div className="sleep-custom">
                   <input
-                    ref={customInputRef}
                     className="sleep-custom-input"
                     type="number"
                     min="1"

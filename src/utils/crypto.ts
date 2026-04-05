@@ -90,7 +90,7 @@ export const decryptData = async (hexCiphertext: string): Promise<string> => {
     );
     
     return decoder.decode(decryptedBuffer);
-  } catch (err) {
+  } catch {
     console.warn("Decryption failed - returning empty state.");
     return "";
   }

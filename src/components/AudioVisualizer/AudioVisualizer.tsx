@@ -1,11 +1,10 @@
-import { useEffect, useRef, useLayoutEffect } from 'react';
+import { useEffect, useRef, useLayoutEffect, type RefObject } from 'react';
 import { useAudioStore } from '../../store/useAudioStore';
 import { TRACKS, type Track } from '../../constants/tracks';
 import './AudioVisualizer.css';
 
-// 1. Update the prop interface to expect a ref object
 interface AudioVisualizerProps {
-  analyserRef: React.MutableRefObject<AnalyserNode | null>;
+  analyserRef: RefObject<AnalyserNode | null>;
 }
 
 const lightenColor = (hex: string, amount = 0.5, alpha = 0.75): string => {
@@ -29,7 +28,6 @@ const IS_MOBILE_VIZ = window.innerWidth < 768 || navigator.maxTouchPoints > 0;
 const VIZ_FRAME_MS = IS_MOBILE_VIZ ? 1000 / 60 : 0; // 0 = no throttle on desktop
 const MAX_DPR = IS_MOBILE_VIZ ? 2 : (window.devicePixelRatio || 1);
 
-// 2. Destructure the newly named prop
 export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -83,7 +81,6 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
       barsReqRef.current = requestAnimationFrame(animate);
       if (VIZ_FRAME_MS > 0 && now - lastBarsFrame < VIZ_FRAME_MS - 0.5) return;
 
-      // 3. Extract the analyser from the ref ON EVERY FRAME
       const analyser = analyserRef.current;
       if (!analyser || !containerRef.current) return;
 
@@ -101,8 +98,7 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
         const start = Math.floor(startFrac * bins);
         const end = Math.max(start + 1, Math.floor(endFrac * bins));
         let max = 0, sum = 0;
-        // @ts-ignore - TS thinks dataArray might still be null here, but we guarantee it's not above
-        for (let i = start; i < end; i++) { if (dataArray[i] > max) max = dataArray[i]; sum += dataArray[i]; }
+        for (let i = start; i < end; i++) { if (dataArray![i] > max) max = dataArray![i]; sum += dataArray![i]; }
         const avg = sum / (end - start);
         return isVoice ? ((max * 0.88) + (avg * 0.12)) / 255 : ((max * 0.72) + (avg * 0.28)) / 255;
       };
@@ -136,7 +132,6 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
     animate(0);
     return () => { cancelAnimationFrame(barsReqRef.current); barsReqRef.current = 0; };
   }, [isPlaying, currentTrackId, visualizerMode, analyserRef]);
-  // ^ Removed 'analyser' from deps, added 'analyserRef'
 
   // WAVE animation
   useEffect(() => {
@@ -170,7 +165,6 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
       waveReqRef.current = requestAnimationFrame(animate);
       if (VIZ_FRAME_MS > 0 && now - lastWaveFrame < VIZ_FRAME_MS - 0.5) return;
 
-      // 4. Extract analyser from ref
       const analyser = analyserRef.current;
       if (!analyser) return;
 
@@ -208,7 +202,7 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
 
       const addCurve = (pts: Float32Array, startWith: 'moveTo' | 'lineTo') => {
         const x0 = 0, y0 = BASE_Y - pts[0];
-        startWith === 'lineTo' ? ctx.lineTo(x0, y0) : ctx.moveTo(x0, y0);
+        if (startWith === 'lineTo') ctx.lineTo(x0, y0); else ctx.moveTo(x0, y0);
         for (let i = 0; i < NUM_POINTS; i++) {
           const x1 = ((i + 1) / NUM_POINTS) * W;
           const y1 = BASE_Y - pts[i + 1];

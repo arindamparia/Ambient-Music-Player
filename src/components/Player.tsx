@@ -37,9 +37,9 @@ export const Player: React.FC = () => {
   useEffect(() => {
     if (!isPlaying) {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-      setControlsVisible(true);
+      setTimeout(() => setControlsVisible(true), 0);
     } else {
-      showControls();
+      setTimeout(() => showControls(), 0);
     }
     return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
   }, [isPlaying, showControls]);
