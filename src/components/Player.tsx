@@ -126,10 +126,11 @@ export const Player: React.FC = () => {
   }, []);
 
   // ── Media Session (OS notification + lock screen controls) ───────────────
+  const handleMediaPlayPause = useCallback(() => togglePlay(), [togglePlay]);
   useMediaSession({
     currentTrackId,
     isPlaying,
-    onPlayPause: () => togglePlay(),
+    onPlayPause: handleMediaPlayPause,
     onNext: nextTrack,
     onPrev: prevTrack,
   });
