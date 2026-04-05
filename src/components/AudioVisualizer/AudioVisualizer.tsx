@@ -74,7 +74,7 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
     }
 
     // Initialize as null — we create this once the analyser is ready
-    let dataArray: Uint8Array | null = null;
+    let dataArray: Uint8Array<ArrayBuffer> | null = null;
     let lastBarsFrame = 0;
 
     const animate = (now: number) => {
@@ -158,7 +158,7 @@ export const AudioVisualizer = ({ analyserRef }: AudioVisualizerProps) => {
     const lerpA = category === 'meditation' ? 0.07 : 0.16;
     const lerpB = lerpA * 0.38;
 
-    let dataArray: Uint8Array | null = null;
+    let dataArray: Uint8Array<ArrayBuffer> | null = null;
     let lastWaveFrame = 0;
 
     const animate = (now: number) => {
