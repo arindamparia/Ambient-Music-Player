@@ -58,3 +58,15 @@ html, body, #root {
   padding: 0;
   background-color: #0a0a0f;
 }
+
+/* ── Disable text selection and copy across the entire app ───── */
+/* Inputs/textareas retain selection so users can still type/edit */
+*:not(input):not(textarea) {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Prevent drag-selection starting on the root */
+body {
+  -webkit-touch-callout: none; /* iOS: suppress callout menu on long-press */
+}

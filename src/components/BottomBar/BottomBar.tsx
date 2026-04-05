@@ -8,6 +8,7 @@ interface BottomBarProps {
   isPlaying: boolean;
   volume: number; // 0-1, linear gain (no overdrive)
   sleepSecondsLeft: number | null;
+  sleepTotalSeconds: number | null;
   onPlayPause: () => void;
   onVolumeChange: (val: number) => void;
   onPrev: () => void;
@@ -30,6 +31,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   isPlaying,
   volume,
   sleepSecondsLeft,
+  sleepTotalSeconds,
   onPlayPause,
   onVolumeChange,
   onPrev,
@@ -38,17 +40,40 @@ export const BottomBar: React.FC<BottomBarProps> = ({
   onSleepEndOfTrack,
 }) => {
   const volInputRef = useRef<HTMLInputElement>(null);
+  const volWrapRef = useRef<HTMLDivElement>(null);
   const [timerOpen, setTimerOpen] = useState(false);
   const [customMin, setCustomMin] = useState('');
   const timerRef = useRef<HTMLDivElement>(null);
   const customInputRef = useRef<HTMLInputElement>(null);
+
+  // Emoji bounce on track change
+  const [artPopping, setArtPopping] = useState(false);
+  const prevEmoji = useRef(emoji);
+  useEffect(() => {
+    if (emoji && emoji !== prevEmoji.current) {
+      prevEmoji.current = emoji;
+      setArtPopping(true);
+      const t = setTimeout(() => setArtPopping(false), 400);
+      return () => clearTimeout(t);
+    }
+  }, [emoji]);
+
+  // Sleep arc fraction (0→1 remaining)
+  const sleepFrac = (sleepSecondsLeft !== null && sleepTotalSeconds !== null && sleepTotalSeconds > 0)
+    ? sleepSecondsLeft / sleepTotalSeconds
+    : null;
+  const ARC_R = 13;
+  const ARC_CIRC = 2 * Math.PI * ARC_R;
 
   const fillPct = Math.round(volume * 100);
   const volLabel = `×${volume.toFixed(1)}`;
 
   // Update slider track fill directly — bypasses React render loop for 60fps
   const applyVolFill = (v: number) => {
-    volInputRef.current?.style.setProperty('--fill', `${Math.round(v * 100)}%`);
+    const pct = `${Math.round(v * 100)}%`;
+    // Set on vol-wrap (non-form element) so iOS Safari pseudo-element inherits correctly
+    volWrapRef.current?.style.setProperty('--fill', pct);
+    volInputRef.current?.style.setProperty('--fill', pct);
   };
 
   useEffect(() => { applyVolFill(volume); }, [volume]);
@@ -93,7 +118,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
           <div className="bottom-bar__info">
             {emoji && (
               <>
-                <div className="bottom-bar__art">{emoji}</div>
+                <div className={`bottom-bar__art${artPopping ? ' bottom-bar__art--pop' : ''}`}>{emoji}</div>
                 <div className="bottom-bar__meta">
                   <span className="bottom-bar__track-title">{title}</span>
                   <span className={`bottom-bar__status ${isPlaying ? 'is-playing' : ''}`}>
@@ -116,7 +141,11 @@ export const BottomBar: React.FC<BottomBarProps> = ({
             </button>
 
             {/* Volume slider + level label (always visible) */}
-            <div className="vol-wrap">
+            <div
+              className="vol-wrap"
+              ref={volWrapRef}
+              style={{ '--fill': `${fillPct}%` } as React.CSSProperties}
+            >
               <span className="vol-level-badge">{volLabel}</span>
               <input
                 ref={volInputRef}
@@ -126,7 +155,6 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                 value={volume}
                 onChange={handleChange}
                 aria-label="Volume"
-                style={{ '--fill': `${fillPct}%` } as React.CSSProperties}
               />
             </div>
           </div>
@@ -150,17 +178,31 @@ export const BottomBar: React.FC<BottomBarProps> = ({
             </button>
           </div>
           <div className="sleep-timer" ref={timerRef}>
-            <button
-              className={`sleep-btn ${sleepSecondsLeft ? 'sleep-btn--active' : ''}`}
-              onClick={() => setTimerOpen(p => !p)}
-              aria-label="Sleep timer"
-              title="Sleep timer"
-            >
-              <Moon size={15} />
-              {sleepSecondsLeft !== null && (
-                <span className="sleep-countdown">{formatSleep(sleepSecondsLeft)}</span>
+            <div className="sleep-arc-wrap">
+              {sleepFrac !== null && (
+                <svg className="sleep-arc" viewBox="0 0 32 32" aria-hidden="true">
+                  <circle cx="16" cy="16" r={ARC_R} className="sleep-arc__track" />
+                  <circle
+                    cx="16" cy="16" r={ARC_R}
+                    className="sleep-arc__fill"
+                    strokeDasharray={ARC_CIRC}
+                    strokeDashoffset={ARC_CIRC * (1 - sleepFrac)}
+                    transform="rotate(-90 16 16)"
+                  />
+                </svg>
               )}
-            </button>
+              <button
+                className={`sleep-btn ${sleepSecondsLeft ? 'sleep-btn--active' : ''}`}
+                onClick={() => setTimerOpen(p => !p)}
+                aria-label="Sleep timer"
+                title="Sleep timer"
+              >
+                <Moon size={15} />
+                {sleepSecondsLeft !== null && (
+                  <span className="sleep-countdown">{formatSleep(sleepSecondsLeft)}</span>
+                )}
+              </button>
+            </div>
 
             {timerOpen && (
               <div className="sleep-popover">

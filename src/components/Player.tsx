@@ -11,6 +11,7 @@ import { AudioVisualizer } from './AudioVisualizer/AudioVisualizer';
 import { Sidebar } from './Sidebar/Sidebar';
 import { NowPlaying } from './NowPlaying/NowPlaying';
 import { BottomBar } from './BottomBar/BottomBar';
+import { ParticleOverlay } from './ParticleOverlay/ParticleOverlay';
 import './Player.css';
 
 export const Player: React.FC = () => {
@@ -26,17 +27,19 @@ export const Player: React.FC = () => {
   // ── Sleep Timer ───────────────────────────────────────────────────────────
   const [sleepEnd, setSleepEnd] = useState<number | null>(null);
   const [sleepLeft, setSleepLeft] = useState<number | null>(null);
+  const [sleepTotal, setSleepTotal] = useState<number | null>(null);
 
-  // Accepts seconds (not minutes) for uniform handling of all timer sources
   const handleSetSleepTimer = useCallback((seconds: number | null) => {
     if (seconds === null) {
       setSleepEnd(null);
       setSleepLeft(null);
+      setSleepTotal(null);
       return;
     }
     const end = Date.now() + seconds * 1000;
     setSleepEnd(end);
     setSleepLeft(Math.ceil(seconds));
+    setSleepTotal(Math.ceil(seconds));
   }, []);
 
   const handleSleepEndOfTrack = useCallback(() => {
@@ -54,6 +57,7 @@ export const Player: React.FC = () => {
       if (left <= 0) {
         setSleepEnd(null);
         setSleepLeft(null);
+        setSleepTotal(null);
         if (useAudioStore.getState().isPlaying) togglePlay();
       }
     }, 1000);
@@ -115,11 +119,20 @@ export const Player: React.FC = () => {
       {/* Full-screen reactive visualizer (z-index: 0) */}
       <AudioVisualizer analyser={analyser} />
 
+      {/* Category-specific particle effects (z-index: 1) */}
+      <ParticleOverlay />
+
       {/* Atmospheric blob/aurora layer — category-aware ambient glow */}
       <div className="player__atmos" aria-hidden="true" />
 
       {/* Per-track color tint overlay */}
       <div className="player__tint" />
+
+      {/* Film grain texture */}
+      <div className="player__grain" aria-hidden="true" />
+
+      {/* Vignette */}
+      <div className="player__vignette" aria-hidden="true" />
 
       {/* Mobile hamburger — only visible on small screens */}
       <button
@@ -135,7 +148,7 @@ export const Player: React.FC = () => {
       {sidebarOpen && (
         <div
           className="player__backdrop"
-          onClick={() => setSidebarOpen(false)}
+          onPointerDown={(e) => { e.preventDefault(); setSidebarOpen(false); }}
           aria-hidden="true"
         />
       )}
@@ -163,6 +176,7 @@ export const Player: React.FC = () => {
         isPlaying={isPlaying}
         volume={volume}
         sleepSecondsLeft={sleepLeft}
+        sleepTotalSeconds={sleepTotal}
         onPlayPause={handlePlayPause}
         onVolumeChange={setVolume}
         onPrev={prevTrack}

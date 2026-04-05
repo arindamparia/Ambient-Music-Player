@@ -7,6 +7,32 @@
   justify-content: center;
 }
 
+/* ── Visualizer mode toggle — top-right ────────────────────── */
+.viz-toggle-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.55);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 7px 12px 7px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  letter-spacing: 0.3px;
+}
+.viz-toggle-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+}
+
 /* ── Open library CTA (desktop collapsed state) ────────────── */
 .open-library-btn {
   position: absolute;

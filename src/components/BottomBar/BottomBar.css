@@ -153,6 +153,11 @@
   .bottom-bar__info   { order: 1; }
   .bottom-bar__center { order: 2; }
   .bottom-bar__volume { order: 3; }
+
+  /* Push sleep timer away from play buttons to the right edge of the center group */
+  .bottom-bar__center .sleep-timer {
+    margin-left: 32px;
+  }
 }
 
 .skip-btn {
@@ -276,9 +281,58 @@
   box-shadow: 0 0 14px var(--theme-color, #06d6a0);
 }
 
+/* ── Art pop microanimation ────────────────────────────────── */
+@keyframes art-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.28); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.bottom-bar__art--pop {
+  animation: art-pop 0.4s ease forwards;
+}
+
+/* ── Progress bar — category morphing ─────────────────────── */
+[data-category="meditation"] .bottom-bar__progress-fill {
+  border-radius: 3px;
+  transition: width 1.5s ease;
+}
+[data-category="devotional"] .bottom-bar__progress-fill {
+  transition: width 0.8s linear;
+}
+
 /* ── Sleep Timer ───────────────────────────────────────────── */
 .sleep-timer {
   position: relative;
+}
+
+/* Sleep arc SVG ring */
+.sleep-arc-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sleep-arc {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  pointer-events: none;
+}
+
+.sleep-arc__track {
+  fill: none;
+  stroke: rgba(167, 139, 250, 0.15);
+  stroke-width: 2;
+}
+
+.sleep-arc__fill {
+  fill: none;
+  stroke: #a78bfa;
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
 }
 
 .sleep-btn {

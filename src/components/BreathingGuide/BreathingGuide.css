@@ -1,0 +1,82 @@
+/* ── Breathing Guide — meditation only ─────────────────────── */
+.breathing-guide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0; /* behind the orb/title which are z-index default */
+}
+
+.breathing-guide__ring {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--theme-color, #854d0e) 35%, transparent);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--theme-color, #854d0e) 18%, transparent),
+    inset 0 0 40px color-mix(in srgb, var(--theme-color, #854d0e) 8%, transparent);
+  /* Default: contracted (exhale complete) */
+  transform: scale(0.6);
+  opacity: 0.28;
+  /* Transition driven by class changes */
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  will-change: transform, opacity;
+}
+
+/* Inhale: expand over 4s */
+.breathing-guide__ring--inhale {
+  transform: scale(1.0);
+  opacity: 0.55;
+  transition: transform 4s ease-in-out, opacity 1.5s ease;
+}
+
+/* Hold-in: stay expanded, instant */
+.breathing-guide__ring--hold-in {
+  transform: scale(1.0);
+  opacity: 0.55;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+/* Exhale: contract over 5s */
+.breathing-guide__ring--exhale {
+  transform: scale(0.6);
+  opacity: 0.28;
+  transition: transform 5s ease-in-out, opacity 2s ease;
+}
+
+/* Hold-out: stay contracted, instant */
+.breathing-guide__ring--hold-out {
+  transform: scale(0.6);
+  opacity: 0.28;
+  transition: transform 0.1s, opacity 0.1s;
+}
+
+/* Label */
+.breathing-guide__label {
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--theme-color, #854d0e) 70%, rgba(255,255,255,0.7));
+  opacity: 0;
+  animation: breath-label-fade 0.5s ease forwards;
+  user-select: none;
+}
+
+@keyframes breath-label-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 0.7; transform: translateY(0); }
+}
+
+/* Mobile: slightly smaller */
+@media (max-width: 640px) {
+  .breathing-guide__ring { width: 150px; height: 150px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathing-guide { display: none; }
+}

@@ -123,6 +123,10 @@
   flex: 1;
   min-height: 0; /* required for overflow-y: auto to work inside a flex column */
   overflow-y: auto;
+  /* pan-y lets the browser handle scroll on the compositor thread
+     so the main-thread RAF (visualizer wave) isn't throttled during scroll */
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   padding: 10px 10px 80px; /* 80px bottom padding so last track clears the dock */
   display: flex;
   flex-direction: column;

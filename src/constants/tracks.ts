@@ -31,7 +31,7 @@ export const TRACKS: Track[] = [
   { key: 'omNamahShivay', emoji: '🕉️', label: 'Om Namah Shivay', theme: '#4c1d95', category: 'devotional' },
   { key: 'aadidevMahadev', emoji: '🏔️', label: 'Aadidev Mahadev', theme: '#1e3a8a', category: 'devotional' },
   { key: 'ramSankirtan', emoji: '🪷', label: 'Shri Ram Sankirtanam', theme: '#9d174d', category: 'devotional' },
-  { key: 'healing', emoji: '✨', label: 'Healing Sounds', theme: '#b45309', category: 'devotional' },
+  { key: 'healing', emoji: '✨', label: 'Healing Sounds', theme: '#b45309', category: 'meditation' },
   { key: 'windMandir', emoji: '🛕', label: 'Winds of the Mandir', theme: '#0f766e', category: 'devotional' },
   { key: 'shivaDeep', emoji: '🔱', label: 'Shiva — Deep Mystical', theme: '#3730a3', category: 'devotional' },
   { key: 'meditation', emoji: '🪘', label: 'Indian Meditation', theme: '#854d0e', category: 'meditation' },
