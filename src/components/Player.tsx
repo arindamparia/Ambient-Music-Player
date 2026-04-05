@@ -184,7 +184,7 @@ export const Player: React.FC = () => {
       {sidebarOpen && (
         <div
           className="player__backdrop"
-          onPointerDown={(e) => { e.preventDefault(); setSidebarOpen(false); }}
+          onClick={() => setSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
