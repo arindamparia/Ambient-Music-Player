@@ -51,6 +51,37 @@
   100% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.8), 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 30px rgba(255, 255, 255, 0); }
 }
 
+/* ── Firefox volume slider ───────────────────────────────────── */
+.custom-vol-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.custom-vol-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: #10b981;
+}
+.custom-vol-slider::-moz-range-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #10b981;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5), 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+.custom-vol-slider::-moz-range-thumb:hover {
+  transform: scale(1.18);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.65), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.custom-vol-slider:active::-moz-range-thumb,
+.custom-vol-slider:focus::-moz-range-thumb {
+  animation: vol-ripple 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;

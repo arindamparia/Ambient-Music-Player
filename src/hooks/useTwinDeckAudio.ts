@@ -22,6 +22,8 @@ export const useTwinDeckAudio = () => {
   const activeDeckRef = useRef<'A' | 'B'>('A');
   const isFadingRef = useRef(false);
   const fadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // True only for the very first play after page load — used to restore saved position
+  const isInitialLoadRef = useRef(true);
 
   // Wake Lock handle — keeps screen alive on mobile while playing
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
@@ -54,6 +56,7 @@ export const useTwinDeckAudio = () => {
   // ── Sync Progress to DOM directly (60fps, no React re-render) ─────────────
   useEffect(() => {
     let raf: number;
+    let lastSaveMs = 0;
     const updateProgress = () => {
       raf = requestAnimationFrame(updateProgress);
       if (document.hidden) return; // skip DOM updates when tab is not visible (saves GPU/CPU)
@@ -73,6 +76,15 @@ export const useTwinDeckAudio = () => {
 
         const durEl = document.getElementById('track-dur-time');
         if (durEl) durEl.innerText = format(active.duration);
+
+        // Persist playback position every 5 s while playing
+        if (isPlayingRef.current) {
+          const now = Date.now();
+          if (now - lastSaveMs >= 5000) {
+            lastSaveMs = now;
+            useAudioStore.getState().setPlaybackPosition(active.currentTime);
+          }
+        }
       }
     };
     raf = requestAnimationFrame(updateProgress);
@@ -282,8 +294,13 @@ export const useTwinDeckAudio = () => {
       }
     }
 
-    // Case 3: Different track → SWITCH
+    // Case 3: Different track → SWITCH (also handles initial load of persisted track)
+    const isRestoring = isInitialLoadRef.current;
+    isInitialLoadRef.current = false;
+
     store.setCurrentTrack(trackToPlay);
+    // Reset saved position when user manually switches to a new track
+    if (!isRestoring) store.setPlaybackPosition(0);
 
     if (fadeTimeoutRef.current) clearTimeout(fadeTimeoutRef.current);
     isFadingRef.current = false;
@@ -304,6 +321,12 @@ export const useTwinDeckAudio = () => {
       deckBRef.current.currentTime = 0;
 
       deckARef.current.play().then(() => {
+        // Restore saved position on initial page load
+        if (isRestoring) {
+          const saved = useAudioStore.getState().playbackPosition;
+          if (saved > 0 && deckARef.current) deckARef.current.currentTime = saved;
+        }
+
         store.setIsPlaying(true);
         attachMediaSession(trackToPlay);
         acquireWakeLock();

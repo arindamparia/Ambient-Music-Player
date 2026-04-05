@@ -101,7 +101,7 @@ interface EmojiFlower { x: number; y: number; vx: number; vy: number; rot: numbe
 // Warm devotional palette: marigold, golden, rose, saffron
 const PETAL_COLS   = [[255,160,30],[255,205,55],[255,120,80],[240,80,110],[255,230,100]] as const;
 const PETAL_COUNT  = 32;
-const FLOWER_EMOJIS = ['🪷', '🌸', '🌟'] as const;
+const FLOWER_EMOJIS = ['🪷', '🌸'] as const;
 const FLOWER_COUNT  = 16;
 
 const PetalsCanvas = ({ active, themeColor }: { active: boolean; themeColor: string }) => {
@@ -317,33 +317,6 @@ export const ParticleOverlay = () => {
   const themeColor = track?.theme ?? '#06d6a0';
   const type      = getParticleType(category, currentTrackId);
 
-  // Lotus + heaven flowers for devotional — scattered throughout the full screen.
-  // Stratified delays guarantee even vertical distribution: particle i is always
-  // at height (i/COUNT)×100% of the screen on first render — no clustering.
-  // X positions use even spacing + jitter to prevent horizontal bunching too.
-  const lotusParticles = useMemo(() => {
-    const EMOJIS = ['🪷', '🌸', '🌺', '✨', '🌟', '🪷', '🌸', '🌺', '✨', '🌸', '🪷', '🌟', '🌺', '🌸', '✨', '🪷'];
-    const COUNT = 16;
-    return Array.from({ length: COUNT }, (_, i) => {
-      const dur = rand(11, 20);
-      return {
-        id: i,
-        // Evenly-spaced columns across the full width with small random jitter
-        x: Math.min(93, Math.max(3, (i / COUNT) * 92 + 3 + rand(-6, 6))),
-        // Stratified delay: particle i starts i/COUNT fraction through its cycle
-        // → particles always fill the full height range, never bunch at bottom
-        delay: -(dur * (i / COUNT)),
-        duration: dur,
-        opacity: rand(0.38, 0.80),
-        sx: `${rand(-3, 3)}vw`,
-        rot: rand(90, 450),
-        // Mix of sizes: small twinkles (12px) to large focal flowers (28px)
-        size: i % 4 === 0 ? rand(22, 28) : i % 4 === 1 ? rand(12, 16) : rand(16, 22),
-        emoji: EMOJIS[i % EMOJIS.length],
-      };
-    });
-  }, []);
-
   const leafParticles = useMemo(() =>
     Array.from({ length: 14 }, (_, i) => {
       const dur = rand(7, 13);
@@ -376,28 +349,7 @@ export const ParticleOverlay = () => {
       {type === 'rain'      && <RainCanvas      active={isPlaying} />}
       {type === 'fireflies' && <FirefliesCanvas active={isPlaying} themeColor={themeColor} />}
 
-      {type === 'petals' && (
-        <>
-          <PetalsCanvas active={isPlaying} themeColor={themeColor} />
-          {/* Lotus & heaven flowers fall downward alongside canvas petals */}
-          {lotusParticles.map(p => (
-            <div
-              key={p.id}
-              className="particle particle--flower"
-              style={{
-                left:           `${p.x}vw`,
-                fontSize:       `${p.size}px`,
-                top:            0,
-                '--p-opacity':  p.opacity,
-                '--p-delay':    `${p.delay}s`,
-                '--p-duration': `${p.duration}s`,
-                '--p-sx':       p.sx,
-                '--p-rot':      `${p.rot}deg`,
-              } as React.CSSProperties}
-            >{p.emoji}</div>
-          ))}
-        </>
-      )}
+      {type === 'petals' && <PetalsCanvas active={isPlaying} themeColor={themeColor} />}
 
       {type === 'leaves' && leafParticles.map(p => (
         <div

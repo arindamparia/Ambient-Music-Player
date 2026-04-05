@@ -281,6 +281,32 @@
   box-shadow: 0 0 14px var(--theme-color, #06d6a0);
 }
 
+/* ── Firefox vol-slider ──────────────────────────────────── */
+.vol-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+}
+.vol-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--theme-color, #06d6a0);
+}
+.vol-slider::-moz-range-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--theme-color, #06d6a0);
+  box-shadow: 0 0 8px var(--theme-color, #06d6a0);
+  transition: transform 0.12s, box-shadow 0.15s;
+}
+.vol-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 14px var(--theme-color, #06d6a0);
+}
+
 /* ── Art pop microanimation ────────────────────────────────── */
 @keyframes art-pop {
   0%   { transform: scale(1); }

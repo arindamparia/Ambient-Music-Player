@@ -8,11 +8,13 @@ interface AudioState {
   volume: number; // 0 to 1
   overdrive: number; // 1.0 to 3.0
   visualizerMode: 'bars' | 'waves';
+  playbackPosition: number; // seconds — restored on page reload
   setCurrentTrack: (id: string | null) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setVolume: (volume: number) => void;
   setOverdrive: (overdrive: number) => void;
   setVisualizerMode: (mode: 'bars' | 'waves') => void;
+  setPlaybackPosition: (pos: number) => void;
 }
 
 // Create an Async Storage wrapper around localStorage using Web Crypto
@@ -39,11 +41,13 @@ export const useAudioStore = create<AudioState>()(
       volume: 0.8,
       overdrive: 1.0,
       visualizerMode: 'bars',
+      playbackPosition: 0,
       setCurrentTrack: (id) => set({ currentTrackId: id }),
       setIsPlaying: (isPlaying) => set({ isPlaying }),
       setVolume: (volume) => set({ volume }),
       setOverdrive: (overdrive) => set({ overdrive }),
       setVisualizerMode: (mode) => set({ visualizerMode: mode }),
+      setPlaybackPosition: (pos) => set({ playbackPosition: pos }),
     }),
     {
       name: 'ambient-music-prefs.secure',
@@ -54,6 +58,7 @@ export const useAudioStore = create<AudioState>()(
         volume: state.volume,
         overdrive: state.overdrive,
         visualizerMode: state.visualizerMode,
+        playbackPosition: state.playbackPosition,
       }),
     }
   )

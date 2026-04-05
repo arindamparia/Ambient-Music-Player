@@ -399,9 +399,10 @@
   /* No external X needed — sidebar has its own close btn + backdrop */
   .player--sidebar-open .player__mobile-menu { display: none; }
 
-  /* Raise bottom bar above backdrop so play controls stay tappable */
-  .player .bottom-bar { z-index: 35; }
+  /* Backdrop covers everything including the bottom bar */
+  .player__backdrop    { z-index: 40; display: block; }
+  /* Sidebar sits above the backdrop */
+  .player .sidebar     { z-index: 50; }
 
-  .player__mobile-menu { display: flex; }
-  .player__backdrop    { display: block; }
+  .player__mobile-menu { display: flex; z-index: 60; }
 }

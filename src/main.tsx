@@ -14,10 +14,13 @@ document.addEventListener('cut', (e) => {
   e.preventDefault();
 });
 // Block context menu (right-click) to prevent "Copy" from context menu
-document.addEventListener('contextmenu', (e) => {
-  if ((e.target as HTMLElement).closest('input, textarea')) return;
-  e.preventDefault();
-});
+// Only active in production — dev mode keeps right-click for DevTools
+if (import.meta.env.PROD) {
+  document.addEventListener('contextmenu', (e) => {
+    if ((e.target as HTMLElement).closest('input, textarea')) return;
+    e.preventDefault();
+  });
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
