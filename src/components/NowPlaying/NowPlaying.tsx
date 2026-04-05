@@ -9,14 +9,18 @@ interface NowPlayingProps {
   emoji: string | undefined;
   title: string | undefined;
   sidebarOpen: boolean;
+  isPlaying: boolean;
   onOpenSidebar: () => void;
+  onPlayPause: () => void;
 }
 
 export const NowPlaying: React.FC<NowPlayingProps> = ({
   emoji,
   title,
   sidebarOpen,
+  isPlaying,
   onOpenSidebar,
+  onPlayPause,
 }) => {
   const { visualizerMode, setVisualizerMode } = useAudioStore();
 
@@ -65,7 +69,12 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="now-playing__hero"
           >
-            <div className="now-playing__orb">{emoji}</div>
+            <div
+              className={`now-playing__orb${isPlaying ? ' now-playing__orb--playing' : ''}`}
+              onClick={onPlayPause}
+              role="button"
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >{emoji}</div>
             <h1 className="now-playing__title">{title}</h1>
             <p className="now-playing__subtitle">Ambient · Radio</p>
           </motion.div>

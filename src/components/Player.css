@@ -315,6 +315,14 @@
 .player .bottom-bar {
   grid-area: bottom;
   z-index: 20;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* Auto-hide: bottom bar fades and retreats downward */
+.player--controls-hidden .bottom-bar {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
 }
 
 /* ── Backdrop (closes sidebar on outside click) ─────────────── */

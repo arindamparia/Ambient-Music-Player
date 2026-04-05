@@ -67,8 +67,9 @@
   padding: 24px;
 }
 
-/* Glowing orb */
+/* Glowing orb — clickable to toggle play/pause */
 .now-playing__orb {
+  cursor: pointer;
   width: 160px;
   height: 160px;
   border-radius: 50%;

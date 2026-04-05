@@ -19,7 +19,29 @@ export const Player: React.FC = () => {
   const { togglePlay, nextTrack, prevTrack, analyser, getActiveDeckRemaining } = useTwinDeckAudio();
 
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMobile = () => window.innerWidth < 768;
+
+  // Show controls and (re)start the 4s inactivity timer
+  const showControls = useCallback(() => {
+    setControlsVisible(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    if (isPlaying) {
+      hideTimerRef.current = setTimeout(() => setControlsVisible(false), 4000);
+    }
+  }, [isPlaying]);
+
+  // Reset timer whenever isPlaying changes
+  useEffect(() => {
+    if (!isPlaying) {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      setControlsVisible(true);
+    } else {
+      showControls();
+    }
+    return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
+  }, [isPlaying, showControls]);
 
   const currentTrack = TRACKS.find(t => t.key === currentTrackId);
   const themeColor = currentTrack?.theme ?? '#4c1d95';
@@ -112,9 +134,12 @@ export const Player: React.FC = () => {
 
   return (
     <div
-      className={`player ${sidebarOpen ? 'player--sidebar-open' : ''}`}
+      className={`player ${sidebarOpen ? 'player--sidebar-open' : ''}${!controlsVisible ? ' player--controls-hidden' : ''}`}
       style={{ '--theme-color': themeColor } as React.CSSProperties}
       data-category={currentTrack?.category ?? ''}
+      onPointerMove={showControls}
+      onPointerDown={showControls}
+      onKeyDown={showControls}
     >
       {/* Full-screen reactive visualizer (z-index: 0) */}
       <AudioVisualizer analyser={analyser} />
@@ -166,7 +191,9 @@ export const Player: React.FC = () => {
         emoji={currentTrack?.emoji}
         title={currentTrack?.label}
         sidebarOpen={sidebarOpen}
+        isPlaying={isPlaying}
         onOpenSidebar={() => setSidebarOpen(true)}
+        onPlayPause={handlePlayPause}
       />
 
       {/* == BOTTOM BAR == */}
