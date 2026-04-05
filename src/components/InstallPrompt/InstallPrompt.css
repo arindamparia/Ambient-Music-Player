@@ -7,7 +7,6 @@
   position: fixed;
   bottom: 108px; /* sits above the bottom bar */
   left: 50%;
-  transform: translateX(-50%);
   z-index: 300;
 
   display: flex;

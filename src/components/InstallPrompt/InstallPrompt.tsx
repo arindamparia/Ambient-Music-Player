@@ -73,9 +73,9 @@ export const InstallPrompt: React.FC = () => {
           className="install-prompt"
           role="dialog"
           aria-label="Install app"
-          initial={{ opacity: 0, y: 60, scale: 0.9, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: 40, scale: 0.94, filter: 'blur(6px)' }}
+          initial={{ opacity: 0, x: '-50%', y: 60, scale: 0.9, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, x: '-50%', y: 0, scale: 1, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, x: '-50%', y: 40, scale: 0.94, filter: 'blur(6px)' }}
           transition={{ type: 'spring', damping: 22, stiffness: 280, duration: 0.5 }}
         >
           {/* Glow ring */}
