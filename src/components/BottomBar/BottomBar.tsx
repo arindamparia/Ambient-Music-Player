@@ -152,7 +152,7 @@ export const BottomBar: React.FC<BottomBarProps> = ({
                 ref={volInputRef}
                 className="vol-slider"
                 type="range"
-                min="0" max="1" step="0.01"
+                min="0" max="1" step="0.05"
                 value={volume}
                 onChange={handleChange}
                 aria-label="Volume"

@@ -244,9 +244,9 @@
 }
 
 .vol-slider {
-  --fill: 80%;
-  width: 100px;
-  max-width: 120px;
+  --fill: 100%;
+  width: 120px;
+  max-width: 140px;
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
@@ -260,8 +260,8 @@
   background: linear-gradient(
     to right,
     var(--theme-color, #06d6a0) 0%,
-    var(--theme-color, #06d6a0) var(--fill, 80%),
-    rgba(255,255,255,0.1) var(--fill, 80%),
+    var(--theme-color, #06d6a0) var(--fill, 100%),
+    rgba(255,255,255,0.1) var(--fill, 100%),
     rgba(255,255,255,0.1) 100%
   );
 }

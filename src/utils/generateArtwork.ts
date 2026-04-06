@@ -73,7 +73,7 @@ export const getCachedArtworkUrl = (emoji: string, themeColor: string): Promise<
         resolve(url);
       } else {
         // Fallback to static icon if blob creation fails
-        resolve('/pwa-512x512.png');
+        resolve('/icon.png');
       }
     }, 'image/png');
   });

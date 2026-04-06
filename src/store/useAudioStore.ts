@@ -38,7 +38,7 @@ export const useAudioStore = create<AudioState>()(
     (set) => ({
       currentTrackId: 'omNamahShivay', // Default priority track
       isPlaying: false,
-      volume: 0.8,
+      volume: 1.0,
       overdrive: 1.0,
       visualizerMode: 'bars',
       playbackPosition: 0,
