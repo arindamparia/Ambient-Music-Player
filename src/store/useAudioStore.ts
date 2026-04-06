@@ -40,7 +40,7 @@ export const useAudioStore = create<AudioState>()(
       isPlaying: false,
       volume: 1.0,
       overdrive: 1.0,
-      visualizerMode: 'bars',
+      visualizerMode: 'waves',
       playbackPosition: 0,
       setCurrentTrack: (id) => set({ currentTrackId: id }),
       setIsPlaying: (isPlaying) => set({ isPlaying }),
