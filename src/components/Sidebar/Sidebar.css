@@ -61,7 +61,8 @@
   transition: border-color 0.2s;
 }
 .sidebar__search:focus-within {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: color-mix(in srgb, var(--theme-color, #06d6a0) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--theme-color, #06d6a0) 20%, transparent);
 }
 .sidebar__search-icon {
   color: rgba(255, 255, 255, 0.45);
@@ -138,6 +139,9 @@
   gap: 2px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  /* Fade hint: top and bottom edges fade to suggest more content */
+  mask-image: linear-gradient(to bottom, transparent 0px, black 18px, black calc(100% - 32px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 18px, black calc(100% - 32px), transparent 100%);
 }
 .sidebar__track-list::-webkit-scrollbar { display: none; }
 
@@ -220,7 +224,8 @@
   overflow: hidden;
 }
 .track-item--playing .track-item__title {
-  color: var(--theme-color, #06d6a0);
+  color: #fff;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--theme-color, #06d6a0) 60%, transparent);
 }
 .track-item__genre {
   font-size: 11px;

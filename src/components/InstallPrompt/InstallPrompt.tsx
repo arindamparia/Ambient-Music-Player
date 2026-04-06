@@ -83,9 +83,7 @@ export const InstallPrompt: React.FC = () => {
           <div className="install-prompt__glow" aria-hidden="true" />
 
           {/* App icon */}
-          <div className="install-prompt__icon" aria-hidden="true">
-            <span>🎵</span>
-          </div>
+          <img className="install-prompt__icon" src="/icon.png" alt="" aria-hidden="true" />
 
           {/* Text */}
           <div className="install-prompt__body">

@@ -28,9 +28,9 @@
   letter-spacing: 0.3px;
 }
 .viz-toggle-btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: color-mix(in srgb, var(--theme-color, #06d6a0) 12%, rgba(255,255,255,0.06));
   color: #fff;
-  border-color: rgba(255,255,255,0.2);
+  border-color: color-mix(in srgb, var(--theme-color, #06d6a0) 45%, transparent);
 }
 
 /* ── Open library CTA (desktop collapsed state) ────────────── */
@@ -52,9 +52,9 @@
   transition: all 0.2s ease;
 }
 .open-library-btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: color-mix(in srgb, var(--theme-color, #06d6a0) 12%, rgba(255,255,255,0.06));
   color: #fff;
-  border-color: rgba(255,255,255,0.18);
+  border-color: color-mix(in srgb, var(--theme-color, #06d6a0) 45%, transparent);
 }
 
 /* ── Hero ──────────────────────────────────────────────────── */
@@ -86,6 +86,21 @@
   position: relative;
   animation: orb-levitate 5s ease-in-out infinite alternate;
   backdrop-filter: blur(10px);
+}
+
+/* Playing state: extra pulsing ring */
+.now-playing__orb--playing {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 24px 60px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 0 0 4px color-mix(in srgb, var(--theme-color, #06d6a0) 35%, transparent);
+  animation: orb-levitate 5s ease-in-out infinite alternate, orb-pulse-ring 2.4s ease-in-out infinite;
+}
+
+@keyframes orb-pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-color, #06d6a0) 35%, transparent), 0 24px 60px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 0 9px color-mix(in srgb, var(--theme-color, #06d6a0) 15%, transparent), 0 24px 60px rgba(0,0,0,0.5); }
 }
 
 /* Rim highlight */
